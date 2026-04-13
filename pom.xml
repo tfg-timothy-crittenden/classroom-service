@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.timcritt</groupId>
-	<artifactId>toefl-speaking-service</artifactId>
+	<artifactId>classroom-service</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>toefl-speaking-service</name>
+	<name>classroom-service</name>
 	<description>TOEFL Speaking Practice Service - provides speaking exam content and practice functionality</description>
 	<url/>
 	<licenses>
@@ -183,6 +183,7 @@
 						<path>
 							<groupId>org.projectlombok</groupId>
 							<artifactId>lombok</artifactId>
+							<version>${lombok.version}</version>
 						</path>
 					</annotationProcessorPaths>
 				</configuration>
