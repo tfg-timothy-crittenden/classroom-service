@@ -11,6 +11,8 @@ import com.timcritt.tfg.infrastructure.web.dto.ClassroomSummaryDto;
 import com.timcritt.tfg.infrastructure.web.dto.MaterialReferenceDto;
 import com.timcritt.tfg.infrastructure.web.dto.RoleCheckDto;
 import com.timcritt.tfg.infrastructure.web.dto.UpdateClassroomMaterialsRequest;
+import com.timcritt.tfg.infrastructure.web.dtoMapper.ClassroomDtoMapper;
+import com.timcritt.tfg.infrastructure.web.dtoMapper.MaterialReferenceDtoMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;

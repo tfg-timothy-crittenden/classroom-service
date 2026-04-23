@@ -1,0 +1,3 @@
+
+ALTER TABLE classroom
+    ADD COLUMN IF NOT EXISTS join_code VARCHAR(50);
