@@ -1,4 +1,4 @@
-package com.timcritt.tfg.infrastructure.web;
+package com.timcritt.tfg.infrastructure.web.dtoMapper;
 
 import com.timcritt.tfg.domain.model.Classroom;
 import com.timcritt.tfg.domain.model.ClassroomRole;

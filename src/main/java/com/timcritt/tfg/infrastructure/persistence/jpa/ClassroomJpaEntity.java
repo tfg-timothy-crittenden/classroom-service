@@ -6,7 +6,9 @@ import lombok.Setter;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name= "classroom")
@@ -23,6 +25,8 @@ public class ClassroomJpaEntity {
     private Instant createdAt;
     @Column(nullable = false)
     private Instant updatedAt;
+    @Column(name = "join_code", length = 50)
+    private String joinCode;
 
     @OneToMany(
             mappedBy = "classroom",
@@ -36,7 +40,7 @@ public class ClassroomJpaEntity {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    private List<MaterialReferenceJpaEntity> materials = new ArrayList<>();
+    private Set<MaterialReferenceJpaEntity> materials = new HashSet<>();
 
 
     public ClassroomJpaEntity() {

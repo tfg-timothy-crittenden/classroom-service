@@ -8,4 +8,6 @@ public interface MaterialReferenceRepositoryPort {
     List<MaterialReference> findByClassroomId(Long classroomId);
 
     List<MaterialReference> findByClassroomIdAndAssignedToRole(Long classroomId, ClassroomRole role);
+
+    List<MaterialReferenceAssignmentView> findAssignmentsByMaterialId(Long materialId);
 }

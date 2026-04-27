@@ -1,6 +1,7 @@
 package com.timcritt.tfg.infrastructure.persistence;
 
 import com.timcritt.tfg.application.port.outbound.MaterialReferenceRepositoryPort;
+import com.timcritt.tfg.application.port.outbound.MaterialReferenceAssignmentView;
 import com.timcritt.tfg.domain.model.ClassroomRole;
 import com.timcritt.tfg.domain.model.MaterialReference;
 import com.timcritt.tfg.infrastructure.persistence.spring.MaterialReferenceJpaRepository;
@@ -30,6 +31,17 @@ public class MaterialReferenceRepositoryAdapter implements MaterialReferenceRepo
         return materialReferenceJpaRepository.findByClassroomIdAndAssignedToRole(classroomId, role)
                 .stream()
                 .map(MaterialReferenceEntityMapper::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<MaterialReferenceAssignmentView> findAssignmentsByMaterialId(Long materialId) {
+        return materialReferenceJpaRepository.findByMaterialId(materialId).stream()
+                .map(entity -> new MaterialReferenceAssignmentView(
+                        entity.getClassroom() != null ? entity.getClassroom().getId() : null,
+                        entity.getMaterialId(),
+                        entity.getAssignedToRole()
+                ))
                 .collect(Collectors.toList());
     }
 }

@@ -15,4 +15,13 @@ public interface ClassroomJpaRepository extends JpaRepository<ClassroomJpaEntity
 
     @Query("SELECT c FROM ClassroomJpaEntity c LEFT JOIN FETCH c.materials WHERE c.id = :id")
     Optional<ClassroomJpaEntity> findByIdWithMaterials(@Param("id") Long id);
+
+    @Query("SELECT c FROM ClassroomJpaEntity c LEFT JOIN FETCH c.members WHERE c.id = :id")
+    Optional<ClassroomJpaEntity> findByIdWithMembers(@Param("id") Long id);
+
+    @Query("SELECT c FROM ClassroomJpaEntity c LEFT JOIN FETCH c.members m LEFT JOIN FETCH c.materials WHERE c.id = :id")
+    Optional<ClassroomJpaEntity> findByIdWithMembersAndMaterials(@Param("id") Long id);
+
+    @Query("SELECT c FROM ClassroomJpaEntity c WHERE c.joinCode = :joinCode")
+    Optional<ClassroomJpaEntity> findByJoinCode(@Param("joinCode") String joinCode);
 }

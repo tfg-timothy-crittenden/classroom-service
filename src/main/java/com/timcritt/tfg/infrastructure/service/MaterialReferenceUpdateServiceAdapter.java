@@ -4,6 +4,7 @@ import com.timcritt.tfg.application.command.UpdateClassroomMaterialsCommand;
 import com.timcritt.tfg.application.port.outbound.MaterialReferenceCommandPort;
 import com.timcritt.tfg.application.service.MaterialReferenceUpdateService;
 import com.timcritt.tfg.domain.model.MaterialReference;
+import com.timcritt.tfg.infrastructure.web.dto.UpdateClassroomMaterialsRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +21,22 @@ public class MaterialReferenceUpdateServiceAdapter {
 
     @Transactional
     public List<MaterialReference> updateClassroomMaterials(UpdateClassroomMaterialsCommand command) {
+        return delegate.updateClassroomMaterials(command);
+    }
+
+    @Transactional
+    public List<MaterialReference> updateClassroomMaterials(Long classroomId, UpdateClassroomMaterialsRequest request) {
+        List<UpdateClassroomMaterialsCommand.MaterialAssignment> desired = request == null || request.getMaterials() == null
+                ? List.of()
+                : request.getMaterials().stream()
+                .map(m -> new UpdateClassroomMaterialsCommand.MaterialAssignment(
+                        m.getMaterialId(),
+                        m.getName(),
+                        m.getDescription(),
+                        m.getAssignedToRole()
+                ))
+                .toList();
+        UpdateClassroomMaterialsCommand command = new UpdateClassroomMaterialsCommand(classroomId, desired);
         return delegate.updateClassroomMaterials(command);
     }
 }

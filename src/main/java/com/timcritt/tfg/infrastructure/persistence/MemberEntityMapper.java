@@ -2,6 +2,7 @@ package com.timcritt.tfg.infrastructure.persistence;
 
 import com.timcritt.tfg.domain.model.Member;
 import com.timcritt.tfg.infrastructure.persistence.jpa.MemberJpaEntity;
+import com.timcritt.tfg.infrastructure.persistence.jpa.ClassroomJpaEntity;
 
 public final class MemberEntityMapper {
     private MemberEntityMapper() {}
@@ -21,7 +22,8 @@ public final class MemberEntityMapper {
         );
     }
 
-    public static MemberJpaEntity toEntity(Member domain) {
+    // Overload toEntity to accept classroom entity
+    public static MemberJpaEntity toEntity(Member domain, ClassroomJpaEntity classroomEntity) {
         if (domain == null) {
             return null;
         }
@@ -33,6 +35,12 @@ public final class MemberEntityMapper {
         entity.setRole(domain.getRole());
         entity.setCreatedAt(domain.getCreatedAt());
         entity.setUpdatedAt(domain.getUpdatedAt());
+        entity.setClassroom(classroomEntity); // Set classroom reference
         return entity;
+    }
+
+    // Keep the old method for compatibility
+    public static MemberJpaEntity toEntity(Member domain) {
+        return toEntity(domain, null);
     }
 }

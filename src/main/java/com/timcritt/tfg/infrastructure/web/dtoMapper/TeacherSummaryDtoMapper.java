@@ -1,4 +1,4 @@
-package com.timcritt.tfg.infrastructure.web;
+package com.timcritt.tfg.infrastructure.web.dtoMapper;
 
 import com.timcritt.tfg.domain.model.Member;
 import com.timcritt.tfg.infrastructure.web.dto.TeacherSummaryDto;

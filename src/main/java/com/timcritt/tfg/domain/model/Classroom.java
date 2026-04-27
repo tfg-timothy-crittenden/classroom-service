@@ -9,15 +9,17 @@ public class Classroom {
     private Long id;
     private String name;
     private String description;
+    private String joinCode;
     private Instant createdAt;
     private Instant updatedAt;
 
     private List<com.timcritt.tfg.domain.model.Member> members = new ArrayList<>();
     private List<MaterialReference> materials = new ArrayList<>();
 
-    public Classroom() {
 
+    public Classroom() {
     }
+
 
     public Classroom(Long id, String name, String description) {
         this.id = id;
@@ -25,12 +27,27 @@ public class Classroom {
         this.description = description;
     }
 
-    public Classroom(Long id, String name, String description, List<Member> members, List<MaterialReference> materials) {
+    public Classroom(Long id, String name, String description, String joinCode) {
         this.id = id;
         this.name = name;
         this.description = description;
+        this.joinCode = joinCode;
+    }
+
+    public Classroom(Long id, String name, String description, String joinCode, List<Member> members, List<MaterialReference> materials) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.joinCode = joinCode;
         this.members = members != null ? members : new ArrayList<>();
         this.materials = materials != null ? materials : new ArrayList<>();
+    }
+    public String getJoinCode() {
+        return joinCode;
+    }
+
+    public void setJoinCode(String joinCode) {
+        this.joinCode = joinCode;
     }
 
     public Long getId() {

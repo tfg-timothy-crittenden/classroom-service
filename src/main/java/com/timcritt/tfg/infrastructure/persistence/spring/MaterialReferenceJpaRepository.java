@@ -17,4 +17,7 @@ public interface MaterialReferenceJpaRepository extends JpaRepository<MaterialRe
             @Param("classroomId") Long classroomId,
             @Param("role") ClassroomRole role
     );
+
+    @Query("SELECT m FROM MaterialReferenceJpaEntity m JOIN FETCH m.classroom WHERE m.materialId = :materialId")
+    List<MaterialReferenceJpaEntity> findByMaterialId(@Param("materialId") Long materialId);
 }

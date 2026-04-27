@@ -33,8 +33,16 @@ public class ClassroomRepositoryAdapter implements ClassroomRepositoryPort {
     }
 
     @Override
+    public Classroom findByJoinCode(String joinCode) {
+        return classroomJpaRepository.findByJoinCode(joinCode)
+                .map(ClassroomEntityMapper::toDomain)
+                .orElse( null);
+    }
+
+    @Override
     public Classroom findById(Long id) {
-        return classroomJpaRepository.findById(id)
+        // Fetch only members to avoid MultipleBagFetchException
+        return classroomJpaRepository.findByIdWithMembers(id)
                 .map(ClassroomEntityMapper::toDomain)
                 .orElse(null);
     }
@@ -53,5 +61,10 @@ public class ClassroomRepositoryAdapter implements ClassroomRepositoryPort {
             return ClassroomEntityMapper.toDomain(entity);
         }
         return null;
+    }
+
+    @Override
+    public void deleteByIds(List<Long> ids) {
+        classroomJpaRepository.deleteAllById(ids);
     }
 }

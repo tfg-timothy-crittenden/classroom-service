@@ -4,7 +4,5 @@ import lombok.Data;
 
 @Data
 public class JoinClassroomRequest {
-    private Long userId;
-    private String classCode;
+    private String joinCode;
 }
-

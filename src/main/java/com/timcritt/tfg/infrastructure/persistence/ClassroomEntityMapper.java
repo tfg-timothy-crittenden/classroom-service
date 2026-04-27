@@ -2,8 +2,10 @@ package com.timcritt.tfg.infrastructure.persistence;
 
 import com.timcritt.tfg.domain.model.Classroom;
 import com.timcritt.tfg.infrastructure.persistence.jpa.ClassroomJpaEntity;
+import com.timcritt.tfg.infrastructure.persistence.jpa.MemberJpaEntity;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public final class ClassroomEntityMapper {
@@ -24,17 +26,17 @@ public final class ClassroomEntityMapper {
         Classroom domain = new Classroom(
                 entity.getId(),
                 entity.getName(),
-                entity.getDescription()
+                entity.getDescription(),
+                entity.getJoinCode()
         );
         domain.setCreatedAt(entity.getCreatedAt());
         domain.setUpdatedAt(entity.getUpdatedAt());
 
+
         if (entity.getMembers() != null) {
             domain.setMembers(entity.getMembers().stream().map(memberMapper).collect(Collectors.toList()));
         }
-        if (entity.getMaterials() != null) {
-            domain.setMaterials(entity.getMaterials().stream().map(materialMapper).collect(Collectors.toList()));
-        }
+
         return domain;
     }
 
@@ -61,12 +63,14 @@ public final class ClassroomEntityMapper {
                 updatedAt
         );
         entity.setId(domain.getId());
+        entity.setJoinCode(domain.getJoinCode());
         if (domain.getMembers() != null) {
-            entity.setMembers(domain.getMembers().stream().map(memberMapper).collect(Collectors.toList()));
+            List<MemberJpaEntity> memberEntities = domain.getMembers().stream()
+                .map(m -> MemberEntityMapper.toEntity(m, entity))
+                .collect(Collectors.toList());
+            entity.setMembers(memberEntities);
         }
-        if (domain.getMaterials() != null) {
-            entity.setMaterials(domain.getMaterials().stream().map(materialMapper).collect(Collectors.toList()));
-        }
+
         return entity;
     }
 }

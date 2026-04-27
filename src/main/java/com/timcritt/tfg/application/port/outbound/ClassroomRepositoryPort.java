@@ -9,6 +9,8 @@ public interface ClassroomRepositoryPort {
     Classroom save(Classroom classroom);
     Classroom findById(Long id);
     Classroom deleteById(Long id);
+    void deleteByIds(List<Long> ids);
     List<Classroom> findByMemberUserId(Long userId);
     List<Classroom> findAll();
+    Classroom findByJoinCode(String joinCode);
 }
