@@ -1,7 +1,8 @@
-package com.timcritt.tfg.application.service;
+package com.timcritt.tfg.application;
 
 import com.timcritt.tfg.application.port.outbound.ClassroomRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.JoinCodeGenerator;
+import com.timcritt.tfg.application.service.ClassroomUseCaseImpl;
 import com.timcritt.tfg.domain.model.Classroom;
 import com.timcritt.tfg.domain.model.ClassroomRole;
 import com.timcritt.tfg.domain.model.Member;

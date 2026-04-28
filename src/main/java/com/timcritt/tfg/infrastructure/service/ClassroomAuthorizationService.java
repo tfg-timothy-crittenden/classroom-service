@@ -214,62 +214,9 @@ public class ClassroomAuthorizationService {
             return false;
         }
 
-        boolean hasAdminAuthority = authentication.getAuthorities().stream()
+        return authentication.getAuthorities().stream()
                 .map(org.springframework.security.core.GrantedAuthority::getAuthority)
-                .anyMatch(authority -> authority != null && (
-                        authority.equalsIgnoreCase("ROLE_ADMIN")
-                                || authority.equalsIgnoreCase("ADMIN")
-                                || authority.equalsIgnoreCase("SYSTEM_ADMIN")
-                                || authority.equalsIgnoreCase("ROLE_SYSTEM_ADMIN")
-                                || authority.equalsIgnoreCase("SCOPE_ADMIN")));
-        if (hasAdminAuthority) {
-            return true;
-        }
-
-        if (authentication instanceof JwtAuthenticationToken jwtAuth) {
-            return claimContainsAdmin(jwtAuth.getToken().getClaim("role"))
-                    || claimContainsAdmin(jwtAuth.getToken().getClaim("roles"))
-                    || claimContainsAdmin(jwtAuth.getToken().getClaim("authorities"))
-                    || claimContainsAdmin(jwtAuth.getToken().getClaim("scope"));
-        }
-
-        return false;
-    }
-
-    private boolean claimContainsAdmin(Object claim) {
-        return switch (claim) {
-            case null -> false;
-            case String value -> matchesAdminValue(value);
-            case Iterable<?> values -> {
-                for (Object value : values) {
-                    if (value != null && matchesAdminValue(value.toString())) {
-                        yield true;
-                    }
-                }
-                yield false;
-            }
-            case Object[] values -> {
-                for (Object value : values) {
-                    if (value != null && matchesAdminValue(value.toString())) {
-                        yield true;
-                    }
-                }
-                yield false;
-            }
-            default -> matchesAdminValue(claim.toString());
-        };
-    }
-
-    private boolean matchesAdminValue(String value) {
-        if (value == null) {
-            return false;
-        }
-
-        return value.equalsIgnoreCase("ADMIN")
-                || value.equalsIgnoreCase("ROLE_ADMIN")
-                || value.equalsIgnoreCase("SYSTEM_ADMIN")
-                || value.equalsIgnoreCase("ROLE_SYSTEM_ADMIN")
-                || value.equalsIgnoreCase("SCOPE_ADMIN");
+                .anyMatch("ROLE_ADMIN"::equals);
     }
 }
 
