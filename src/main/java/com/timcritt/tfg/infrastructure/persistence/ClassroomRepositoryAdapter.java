@@ -35,15 +35,14 @@ public class ClassroomRepositoryAdapter implements ClassroomRepositoryPort {
 
     @Override
     public Classroom findByJoinCode(String joinCode) {
-        return classroomJpaRepository.findByJoinCode(joinCode)
+        return classroomJpaRepository.findByJoinCodeWithMembersAndMaterials(joinCode)
                 .map(ClassroomEntityMapper::toDomain)
                 .orElse( null);
     }
 
     @Override
     public Classroom findById(Long id) {
-        // Fetch only members to avoid MultipleBagFetchException
-        return classroomJpaRepository.findByIdWithMembers(id)
+        return classroomJpaRepository.findByIdWithMembersAndMaterials(id)
                 .map(ClassroomEntityMapper::toDomain)
                 .orElse(null);
     }

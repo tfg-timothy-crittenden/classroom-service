@@ -3,9 +3,15 @@ package com.timcritt.tfg.infrastructure.persistence;
 import com.timcritt.tfg.domain.model.Classroom;
 import com.timcritt.tfg.infrastructure.persistence.jpa.ClassroomJpaEntity;
 import com.timcritt.tfg.infrastructure.persistence.jpa.MemberJpaEntity;
+import com.timcritt.tfg.infrastructure.persistence.jpa.MaterialReferenceJpaEntity;
 
+import java.util.ArrayList;
 import java.time.Instant;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public final class ClassroomEntityMapper {
@@ -17,8 +23,8 @@ public final class ClassroomEntityMapper {
 
     public static Classroom toDomain(
             ClassroomJpaEntity entity,
-            java.util.function.Function<com.timcritt.tfg.infrastructure.persistence.jpa.MemberJpaEntity, com.timcritt.tfg.domain.model.Member> memberMapper,
-            java.util.function.Function<com.timcritt.tfg.infrastructure.persistence.jpa.MaterialReferenceJpaEntity, com.timcritt.tfg.domain.model.MaterialReference> materialMapper
+            java.util.function.Function<MemberJpaEntity, com.timcritt.tfg.domain.model.Member> memberMapper,
+            java.util.function.Function<MaterialReferenceJpaEntity, com.timcritt.tfg.domain.model.MaterialReference> materialMapper
     ) {
         if (entity == null) {
             return null;
@@ -34,7 +40,17 @@ public final class ClassroomEntityMapper {
 
 
         if (entity.getMembers() != null) {
-            domain.setMembers(entity.getMembers().stream().map(memberMapper).collect(Collectors.toList()));
+            domain.setMembers(distinctByKey(entity.getMembers(), MemberJpaEntity::getUserId)
+                    .stream()
+                    .map(memberMapper)
+                    .collect(Collectors.toList()));
+        }
+
+        if (entity.getMaterials() != null) {
+            domain.setMaterials(distinctByKey(entity.getMaterials(), MaterialReferenceJpaEntity::getMaterialId)
+                    .stream()
+                    .map(materialMapper)
+                    .collect(Collectors.toList()));
         }
 
         return domain;
@@ -65,12 +81,32 @@ public final class ClassroomEntityMapper {
         entity.setId(domain.getId());
         entity.setJoinCode(domain.getJoinCode());
         if (domain.getMembers() != null) {
-            List<MemberJpaEntity> memberEntities = domain.getMembers().stream()
-                .map(m -> MemberEntityMapper.toEntity(m, entity))
+            List<MemberJpaEntity> memberEntities = distinctByKey(domain.getMembers(), com.timcritt.tfg.domain.model.Member::getUserId)
+                .stream()
+                .map(memberMapper)
                 .collect(Collectors.toList());
+            memberEntities.forEach(member -> member.setClassroom(entity));
             entity.setMembers(memberEntities);
         }
 
+        if (domain.getMaterials() != null) {
+            entity.setMaterials(distinctByKey(domain.getMaterials(), com.timcritt.tfg.domain.model.MaterialReference::getMaterialId).stream()
+                    .map(material -> {
+                        MaterialReferenceJpaEntity materialEntity = materialMapper.apply(material);
+                        materialEntity.setClassroom(entity);
+                        return materialEntity;
+                    })
+                    .collect(Collectors.toSet()));
+        }
+
         return entity;
+    }
+
+    private static <T, K> List<T> distinctByKey(Collection<T> items, Function<T, K> keyExtractor) {
+        Map<K, T> uniqueItems = new LinkedHashMap<>();
+        for (T item : items) {
+            uniqueItems.putIfAbsent(keyExtractor.apply(item), item);
+        }
+        return new ArrayList<>(uniqueItems.values());
     }
 }
