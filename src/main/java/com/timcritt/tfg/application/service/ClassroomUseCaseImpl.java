@@ -54,8 +54,8 @@ public class ClassroomUseCaseImpl implements ClassroomUseCase {
     }
 
     @Override
-    public Classroom deleteClassroomById(Long classroomId) {
-        return repository.deleteById(classroomId);
+    public void deleteClassroomById(Long classroomId) {
+        repository.deleteById(classroomId);
     }
 
     // Add this method for syncTeachersForClassroom
@@ -94,7 +94,7 @@ public class ClassroomUseCaseImpl implements ClassroomUseCase {
         }
         List<Member> currentTeachers = classroom.getMembers().stream()
                 .filter(m -> m.getRole() == ClassroomRole.TEACHER)
-                .collect(java.util.stream.Collectors.toList());
+                .toList();
         // Remove teachers not in the new list
         currentTeachers.stream()
                 .filter(m -> teachers.stream().noneMatch(t -> t.getUserId().equals(m.getUserId())))
@@ -139,5 +139,10 @@ public class ClassroomUseCaseImpl implements ClassroomUseCase {
         member.setUpdatedAt(java.time.Instant.now());
         classroom.addMember(member);
         return repository.save(classroom);
+    }
+
+    @Override
+    public boolean removeMemberFromClassroom(Long classroomId, Long userId) {
+        return repository.removeMemberFromClassroom(classroomId, userId);
     }
 }

@@ -5,7 +5,6 @@ import com.timcritt.tfg.domain.model.ClassroomRole;
 import com.timcritt.tfg.infrastructure.web.dto.ClassroomDto;
 import com.timcritt.tfg.infrastructure.web.dto.ClassroomSummaryDto;
 import com.timcritt.tfg.infrastructure.web.dto.TeacherSummaryDto;
-import com.timcritt.tfg.infrastructure.web.dto.MemberDto;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -27,14 +26,7 @@ public class ClassroomDtoMapper {
         if (classroom.getMembers() != null) {
             dto.setMembers(classroom.getMembers().stream()
                 .filter(member -> member.getRole() == ClassroomRole.TEACHER)
-                .map(member -> {
-                    com.timcritt.tfg.infrastructure.web.dto.MemberDto memberDto = new MemberDto();
-                    memberDto.setUserId(member.getUserId());
-                    memberDto.setRole(member.getRole());
-                    memberDto.setName(member.getName());
-                    memberDto.setSurname(member.getSurname());
-                    return memberDto;
-                })
+                .map(MemberDtoMapper::toDto)
                 .collect(java.util.stream.Collectors.toList()));
             dto.setStudentCount((int) classroom.getMembers().stream()
                 .filter(member -> member.getRole() == ClassroomRole.STUDENT)

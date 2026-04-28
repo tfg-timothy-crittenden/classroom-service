@@ -19,11 +19,25 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class SecurityConfig {
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http, InternalApiKeyFilter internalApiKeyFilter) throws Exception {
+    SecurityFilterChain securityFilterChain(HttpSecurity http, InternalApiKeyFilter internalApiKeyFilter) {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/internal/**").permitAll()
+                        .requestMatchers("/api/classrooms").authenticated()
+                        .requestMatchers("/api/classrooms/*").authenticated()
+                        .requestMatchers("/api/classrooms/*/members/teachers").authenticated()
+                        .requestMatchers("/api/classrooms/*/members/students").authenticated()
+                        .requestMatchers("/api/classrooms/*/members/*/role").authenticated()
+                        .requestMatchers("/api/classrooms/*/members/*").authenticated()
+                        .requestMatchers("/api/classrooms/*/materials").authenticated()
+                        .requestMatchers("/api/classrooms/*/materials/role/*").authenticated()
+                        .requestMatchers("/api/classrooms/*/assign-teacher").authenticated()
+                        .requestMatchers("/api/classrooms/*/teachers").authenticated()
+                        .requestMatchers("/api/classrooms/*/join-code").authenticated()
+                        .requestMatchers("/api/classrooms/batch").authenticated()
+                        .requestMatchers("/api/classrooms/member/*").authenticated()
+                        .requestMatchers("/api/classrooms/summary/member/*").authenticated()
                         .requestMatchers("/api/classrooms/join").authenticated()
                         .anyRequest().permitAll()
                 )

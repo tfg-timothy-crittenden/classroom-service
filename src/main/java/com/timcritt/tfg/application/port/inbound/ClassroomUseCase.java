@@ -15,7 +15,7 @@ public interface ClassroomUseCase {
 
     Classroom save(Classroom classroom);
 
-    Classroom deleteClassroomById(Long classroomId);
+    void deleteClassroomById(Long classroomId);
 
     void deleteClassroomsByIds(List<Long> classroomIds);
     
@@ -26,4 +26,6 @@ public interface ClassroomUseCase {
     Classroom getClassroomById(Long classroomId);
 
     Classroom joinClassroom(Long userId, String classCode, String name, String surname);
+
+    boolean removeMemberFromClassroom(Long classroomId, Long userId);
 }

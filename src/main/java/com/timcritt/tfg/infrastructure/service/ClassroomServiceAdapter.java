@@ -1,32 +1,30 @@
 package com.timcritt.tfg.infrastructure.service;
 
 import com.timcritt.tfg.application.port.outbound.ClassroomRepositoryPort;
-import com.timcritt.tfg.application.port.outbound.MaterialReferenceRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.JoinCodeGenerator;
 import com.timcritt.tfg.application.service.ClassroomUseCaseImpl;
-import com.timcritt.tfg.application.service.MaterialReferenceQueryService;
 import com.timcritt.tfg.domain.model.Classroom;
-import com.timcritt.tfg.domain.model.MaterialReference;
-import com.timcritt.tfg.domain.model.Member;
 import com.timcritt.tfg.domain.model.ClassroomRole;
-import com.timcritt.tfg.infrastructure.web.dto.SyncTeachersRequest;
+import com.timcritt.tfg.domain.model.Member;
 import com.timcritt.tfg.infrastructure.web.dto.TeacherDto;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 
-import com.timcritt.tfg.infrastructure.web.dto.MemberDto;
 
 @Service
 public class ClassroomServiceAdapter {
 
     private final ClassroomUseCaseImpl delegate;
-    private final MaterialReferenceQueryService materialReferenceQueryService;
+    private final MemberRoleServiceAdapter memberRoleService;
 
-    public ClassroomServiceAdapter(ClassroomRepositoryPort repository, MaterialReferenceRepositoryPort materialReferenceRepository, JoinCodeGenerator joinCodeGenerator) {
+    public ClassroomServiceAdapter(ClassroomRepositoryPort repository,
+                                   JoinCodeGenerator joinCodeGenerator,
+                                   MemberRoleServiceAdapter memberRoleService) {
         this.delegate = new ClassroomUseCaseImpl(repository, joinCodeGenerator);
-        this.materialReferenceQueryService = new MaterialReferenceQueryService(materialReferenceRepository);
+        this.memberRoleService = memberRoleService;
     }
 
 
@@ -36,29 +34,13 @@ public class ClassroomServiceAdapter {
     }
 
     @Transactional(readOnly = true)
-    public List<MemberDto> getTeachersByClassroomId(Long classroomId) {
-        List<Member> teachers = delegate.getMembersByRole(classroomId, ClassroomRole.TEACHER);
-        return teachers.stream().map(member -> {
-            MemberDto dto = new MemberDto();
-            dto.setUserId(member.getUserId());
-            dto.setRole(member.getRole());
-            dto.setName(member.getName());
-            dto.setSurname(member.getSurname());
-            return dto;
-        }).collect(java.util.stream.Collectors.toList());
+    public List<Member> getTeachersByClassroomId(Long classroomId) {
+        return delegate.getMembersByRole(classroomId, ClassroomRole.TEACHER);
     }
 
     @Transactional(readOnly = true)
-    public List<MemberDto> getStudentsByClassroomId(Long classroomId) {
-        List<Member> students = delegate.getMembersByRole(classroomId, ClassroomRole.STUDENT);
-        return students.stream().map(member -> {
-            MemberDto dto = new MemberDto();
-            dto.setUserId(member.getUserId());
-            dto.setRole(member.getRole());
-            dto.setName(member.getName());
-            dto.setSurname(member.getSurname());
-            return dto;
-        }).collect(java.util.stream.Collectors.toList());
+    public List<Member> getStudentsByClassroomId(Long classroomId) {
+        return delegate.getMembersByRole(classroomId, ClassroomRole.STUDENT);
     }
 
 
@@ -67,10 +49,6 @@ public class ClassroomServiceAdapter {
         return delegate.getAllClassrooms();
     }
 
-    @Transactional(readOnly = true)
-    public List<MaterialReference> getMaterialsByClassroom(Long classroomId) {
-        return materialReferenceQueryService.getMaterialsByClassroom(classroomId);
-    }
 
     @Transactional
     public Classroom save(Classroom classroom) {
@@ -122,5 +100,15 @@ public class ClassroomServiceAdapter {
     @Transactional
     public Classroom joinClassroom(Long userId, String classCode, String name, String surname) {
         return delegate.joinClassroom(userId, classCode, name, surname);
+    }
+
+    @Transactional
+    public boolean removeMemberFromClassroom(Long classroomId, Long userId) {
+        return delegate.removeMemberFromClassroom(classroomId, userId);
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<ClassroomRole> getRoleInClassroom(Long classroomId, Long userId) {
+        return memberRoleService.getRoleInClassroom(classroomId, userId);
     }
 }
