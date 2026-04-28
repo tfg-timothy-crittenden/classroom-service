@@ -43,11 +43,21 @@ public class ClassroomUseCaseImpl implements ClassroomUseCase {
         if (classroom == null) {
             throw new IllegalArgumentException("Classroom not found: " + classroomId);
         }
-        // Check if a teacher with the same userId already exists
-        boolean alreadyAssigned = classroom.getMembers().stream()
-            .anyMatch(m -> m.getUserId().equals(member.getUserId()) && m.getRole() == ClassroomRole.TEACHER);
-        if (alreadyAssigned) {
-            throw new TeacherAlreadyAssignedException("Teacher with userId " + member.getUserId() + " is already assigned to classroom " + classroomId);
+        Member existingMember = classroom.getMembers().stream()
+                .filter(m -> m.getUserId().equals(member.getUserId()))
+                .findFirst()
+                .orElse(null);
+
+        if (existingMember != null) {
+            if (existingMember.getRole() == ClassroomRole.STUDENT) {
+                throw new MemberAlreadyInClassroomException(
+                        buildAlreadyMemberMessage(classroom, member.getName(), member.getSurname())
+                );
+            }
+
+            throw new TeacherAlreadyAssignedException(
+                    buildAlreadyMemberMessage(classroom, member.getName(), member.getSurname())
+            );
         }
         classroom.addMember(member);
         return repository.save(classroom);
@@ -75,6 +85,22 @@ public class ClassroomUseCaseImpl implements ClassroomUseCase {
         }
     }
 
+    public static class MemberAlreadyInClassroomException extends RuntimeException {
+        public MemberAlreadyInClassroomException(String message) {
+            super(message);
+        }
+    }
+
+    private String buildAlreadyMemberMessage(Classroom classroom, String name, String surname) {
+        return fullName(name, surname) + " is already a member of " + classroom.getName();
+    }
+
+    private String fullName(String name, String surname) {
+        String safeName = name == null ? "" : name.trim();
+        String safeSurname = surname == null ? "" : surname.trim();
+        return (safeName + " " + safeSurname).trim();
+    }
+
     @Override
     public List<Member> getMembersByRole(Long classroomId, ClassroomRole role) {
         Classroom classroom = repository.findById(classroomId);
@@ -92,6 +118,19 @@ public class ClassroomUseCaseImpl implements ClassroomUseCase {
         if (classroom == null) {
             throw new IllegalArgumentException("Classroom not found: " + classroomId);
         }
+        teachers.forEach(teacher -> {
+            Member existingMember = classroom.getMembers().stream()
+                    .filter(member -> member.getUserId().equals(teacher.getUserId()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (existingMember != null && existingMember.getRole() == ClassroomRole.STUDENT) {
+                throw new MemberAlreadyInClassroomException(
+                        buildAlreadyMemberMessage(classroom, teacher.getName(), teacher.getSurname())
+                );
+            }
+        });
+
         List<Member> currentTeachers = classroom.getMembers().stream()
                 .filter(m -> m.getRole() == ClassroomRole.TEACHER)
                 .toList();
@@ -126,8 +165,9 @@ public class ClassroomUseCaseImpl implements ClassroomUseCase {
         boolean alreadyMember = classroom.getMembers().stream()
             .anyMatch(m -> m.getUserId().equals(userId));
         if (alreadyMember) {
-            //todo throw error
-            return classroom; // Or throw if you want to prevent re-joining
+            throw new MemberAlreadyInClassroomException(
+                    buildAlreadyMemberMessage(classroom, name, surname)
+            );
         }
         // Add as student
         Member member = new Member();

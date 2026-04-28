@@ -96,7 +96,7 @@ public class ClassroomController {
                 .collect(Collectors.toList());
     }
 
-    //Only be accessible to members of that classroom and system admin. Teachers of the classroom can see all. Student members of classroom can only access material assigned to student members.
+    //Only accessible to members of that classroom and system admin. Teachers of the classroom can see all. Student members of classroom can only access material assigned to student members.
     @GetMapping("/{classroomId}/materials/role/{role}")
     public List<MaterialReferenceDto> getMaterialsByClassroomAndRole(
             Authentication authentication,

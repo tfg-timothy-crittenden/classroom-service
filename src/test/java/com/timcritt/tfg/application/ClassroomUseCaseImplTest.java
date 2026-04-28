@@ -13,9 +13,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ClassroomUseCaseImplTest {
 
@@ -108,6 +110,51 @@ class ClassroomUseCaseImplTest {
         boolean removed = useCase.removeMemberFromClassroom(7L, 999L);
 
         assertFalse(removed);
+    }
+
+    @Test
+    void throwsStudentSpecificConflictWhenAssigningTeacherForExistingStudent() {
+        Classroom classroom = classroomWithMembers();
+        classrooms.put(classroom.getId(), classroom);
+
+        ClassroomUseCaseImpl.MemberAlreadyInClassroomException exception = assertThrows(
+                ClassroomUseCaseImpl.MemberAlreadyInClassroomException.class,
+                () -> useCase.assignTeacherToClassroom(
+                        7L,
+                        new Member(null, 42L, "John", "Smith", ClassroomRole.TEACHER, Instant.now(), Instant.now())
+                )
+        );
+
+        assertEquals("John Smith is already a member of Math", exception.getMessage());
+    }
+
+    @Test
+    void throwsStudentSpecificConflictWhenJoiningAlreadyJoinedClassroom() {
+        Classroom classroom = classroomWithMembers();
+        classrooms.put(classroom.getId(), classroom);
+
+        ClassroomUseCaseImpl.MemberAlreadyInClassroomException exception = assertThrows(
+                ClassroomUseCaseImpl.MemberAlreadyInClassroomException.class,
+                () -> useCase.joinClassroom(42L, "JOIN-123", "John", "Smith")
+        );
+
+        assertEquals("John Smith is already a member of Math", exception.getMessage());
+    }
+
+    @Test
+    void throwsStudentSpecificConflictWhenSyncingTeachersForExistingStudent() {
+        Classroom classroom = classroomWithMembers();
+        classrooms.put(classroom.getId(), classroom);
+
+        ClassroomUseCaseImpl.MemberAlreadyInClassroomException exception = assertThrows(
+                ClassroomUseCaseImpl.MemberAlreadyInClassroomException.class,
+                () -> useCase.syncTeachersForClassroom(
+                        7L,
+                        List.of(new Member(null, 42L, "John", "Smith", ClassroomRole.TEACHER, Instant.now(), Instant.now()))
+                )
+        );
+
+        assertEquals("John Smith is already a member of Math", exception.getMessage());
     }
 
     private Classroom classroomWithMembers() {
