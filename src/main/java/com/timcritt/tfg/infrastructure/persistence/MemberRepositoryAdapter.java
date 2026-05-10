@@ -20,5 +20,10 @@ public class MemberRepositoryAdapter implements MemberRepositoryPort {
     public Optional<ClassroomRole> findRoleByClassroomIdAndUserId(Long classroomId, Long userId) {
         return jpaRepository.findRoleByClassroomIdAndUserId(classroomId, userId);
     }
+
+    @Override
+    public int deleteTeacherMembershipsByUserId(Long userId) {
+        return jpaRepository.deleteByUserIdAndRole(userId, ClassroomRole.TEACHER);
+    }
 }
 

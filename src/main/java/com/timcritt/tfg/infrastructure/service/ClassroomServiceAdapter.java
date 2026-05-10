@@ -2,6 +2,7 @@ package com.timcritt.tfg.infrastructure.service;
 
 import com.timcritt.tfg.application.port.outbound.ClassroomRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.JoinCodeGenerator;
+import com.timcritt.tfg.application.port.outbound.MemberRepositoryPort;
 import com.timcritt.tfg.application.service.ClassroomUseCaseImpl;
 import com.timcritt.tfg.domain.model.Classroom;
 import com.timcritt.tfg.domain.model.ClassroomRole;
@@ -21,9 +22,10 @@ public class ClassroomServiceAdapter {
     private final MemberRoleServiceAdapter memberRoleService;
 
     public ClassroomServiceAdapter(ClassroomRepositoryPort repository,
+                                   MemberRepositoryPort memberRepository,
                                    JoinCodeGenerator joinCodeGenerator,
                                    MemberRoleServiceAdapter memberRoleService) {
-        this.delegate = new ClassroomUseCaseImpl(repository, joinCodeGenerator);
+        this.delegate = new ClassroomUseCaseImpl(repository, memberRepository, joinCodeGenerator);
         this.memberRoleService = memberRoleService;
     }
 
@@ -105,6 +107,11 @@ public class ClassroomServiceAdapter {
     @Transactional
     public boolean removeMemberFromClassroom(Long classroomId, Long userId) {
         return delegate.removeMemberFromClassroom(classroomId, userId);
+    }
+
+    @Transactional
+    public int revokeTeacherRoleFromUser(Long userId) {
+        return delegate.revokeTeacherRoleFromUser(userId);
     }
 
     @Transactional(readOnly = true)

@@ -30,6 +30,8 @@ public class MaterialReferenceUpdateService {
                         m.materialId(),
                         m.name(),
                         m.description(),
+                        m.part1Title(),
+                        m.part2Title(),
                         m.assignedToRole()
                 ))
                 .toList();

@@ -6,5 +6,6 @@ import java.util.Optional;
 
 public interface MemberRepositoryPort {
     Optional<ClassroomRole> findRoleByClassroomIdAndUserId(Long classroomId, Long userId);
+    int deleteTeacherMembershipsByUserId(Long userId);
 }
 

@@ -15,6 +15,8 @@ public final class MaterialReferenceEntityMapper {
                 entity.getMaterialId(),
                 entity.getName(),
                 entity.getDescription(),
+                entity.getPart1Title(),
+                entity.getPart2Title(),
                 entity.getAssignedToRole()
         );
     }
@@ -29,6 +31,8 @@ public final class MaterialReferenceEntityMapper {
                 domain.getMaterialId(),
                 domain.getName(),
                 domain.getDescription(),
+                domain.getPart1Title(),
+                domain.getPart2Title(),
                 domain.getAssignedToRole()
         );
     }

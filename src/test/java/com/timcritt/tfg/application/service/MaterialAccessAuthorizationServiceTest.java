@@ -161,6 +161,11 @@ class MaterialAccessAuthorizationServiceTest {
         public Optional<ClassroomRole> findRoleByClassroomIdAndUserId(Long classroomId, Long userId) {
             return Optional.ofNullable(rolesByMembership.get(new Key(classroomId, userId)));
         }
+
+        @Override
+        public int deleteTeacherMembershipsByUserId(Long userId) {
+            return 0;
+        }
     }
 }
 

@@ -3,6 +3,7 @@ package com.timcritt.tfg.application.service;
 import com.timcritt.tfg.application.port.inbound.ClassroomUseCase;
 import com.timcritt.tfg.application.port.outbound.ClassroomRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.JoinCodeGenerator;
+import com.timcritt.tfg.application.port.outbound.MemberRepositoryPort;
 import com.timcritt.tfg.domain.model.Classroom;
 import com.timcritt.tfg.domain.model.Member;
 import com.timcritt.tfg.domain.model.ClassroomRole;
@@ -12,10 +13,12 @@ import java.util.List;
 public class ClassroomUseCaseImpl implements ClassroomUseCase {
 
     private final ClassroomRepositoryPort repository;
+    private final MemberRepositoryPort memberRepository;
     private final JoinCodeGenerator joinCodeGenerator;
 
-    public ClassroomUseCaseImpl(ClassroomRepositoryPort repository, JoinCodeGenerator joinCodeGenerator) {
+    public ClassroomUseCaseImpl(ClassroomRepositoryPort repository, MemberRepositoryPort memberRepository, JoinCodeGenerator joinCodeGenerator) {
         this.repository = repository;
+        this.memberRepository = memberRepository;
         this.joinCodeGenerator = joinCodeGenerator;
     }
 
@@ -184,5 +187,14 @@ public class ClassroomUseCaseImpl implements ClassroomUseCase {
     @Override
     public boolean removeMemberFromClassroom(Long classroomId, Long userId) {
         return repository.removeMemberFromClassroom(classroomId, userId);
+    }
+
+    @Override
+    public int revokeTeacherRoleFromUser(Long userId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("userId is required");
+        }
+
+        return memberRepository.deleteTeacherMembershipsByUserId(userId);
     }
 }

@@ -33,6 +33,8 @@ public class MaterialReferenceUpdateServiceAdapter {
                         m.getMaterialId(),
                         m.getName(),
                         m.getDescription(),
+                        m.getPart1Title(),
+                        m.getPart2Title(),
                         m.getAssignedToRole()
                 ))
                 .toList();

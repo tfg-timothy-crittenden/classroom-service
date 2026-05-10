@@ -12,6 +12,8 @@ public final class MaterialReferenceDtoMapper {
         dto.setMaterialId(materialReference.getMaterialId());
         dto.setName(materialReference.getName());
         dto.setDescription(materialReference.getDescription());
+        dto.setPart1Title(materialReference.getPart1Title());
+        dto.setPart2Title(materialReference.getPart2Title());
         return dto;
     }
 }

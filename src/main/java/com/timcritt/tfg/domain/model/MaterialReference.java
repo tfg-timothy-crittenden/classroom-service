@@ -6,15 +6,22 @@ public class MaterialReference {
     private Long materialId;
     private String name;
     private String description;
+    private String part1Title;
+    private String part2Title;
     private ClassroomRole assignedToRole;
 
     public MaterialReference() {
     }
     public MaterialReference(Long id, Long materialId, String name, String description, ClassroomRole assignedToRole) {
+        this(id, materialId, name, description, null, null, assignedToRole);
+    }
+    public MaterialReference(Long id, Long materialId, String name, String description, String part1Title, String part2Title, ClassroomRole assignedToRole) {
         this.id = id;
         this.materialId = materialId;
         this.name = name;
         this.description = description;
+        this.part1Title = part1Title;
+        this.part2Title = part2Title;
         this.assignedToRole = assignedToRole;
     }
     public Long getId() {
@@ -40,6 +47,18 @@ public class MaterialReference {
     }
     public void setDescription(String description) {
         this.description = description;
+    }
+    public String getPart1Title() {
+        return part1Title;
+    }
+    public void setPart1Title(String part1Title) {
+        this.part1Title = part1Title;
+    }
+    public String getPart2Title() {
+        return part2Title;
+    }
+    public void setPart2Title(String part2Title) {
+        this.part2Title = part2Title;
     }
     public ClassroomRole getAssignedToRole() {
         return assignedToRole;

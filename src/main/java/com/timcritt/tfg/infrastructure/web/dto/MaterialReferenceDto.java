@@ -7,5 +7,7 @@ public class MaterialReferenceDto {
     private Long materialId;
     private String name;
     private String description;
+    private String part1Title;
+    private String part2Title;
 }
 
