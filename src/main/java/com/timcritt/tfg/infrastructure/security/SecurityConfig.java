@@ -1,5 +1,7 @@
 package com.timcritt.tfg.infrastructure.security;
 
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -57,10 +59,24 @@ public class SecurityConfig {
         return authenticationConverter;
     }
 
+
     @Bean
-    JwtDecoder jwtDecoder() {
-        String secret = "change-me-change-me-change-me-change-me";
-        SecretKey key = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), "HmacSHA256");
-        return NimbusJwtDecoder.withSecretKey(key).build();
+    JwtDecoder jwtDecoder(
+            @Value("${security.jwt.hs256.secret:change-me-change-me-change-me-change-me}") String secret,
+            @Value("${security.jwt.hs256.algorithm:HS256}") String algorithm
+    ) {
+        String jcaAlgorithm = switch (algorithm) {
+            case "HS256" -> "HmacSHA256";
+            case "HS384" -> "HmacSHA384";
+            case "HS512" -> "HmacSHA512";
+            default -> throw new IllegalArgumentException("Unsupported JWT algorithm: " + algorithm);
+        };
+
+        SecretKey key = new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8), jcaAlgorithm);
+
+        return NimbusJwtDecoder
+                .withSecretKey(key)
+                .macAlgorithm(org.springframework.security.oauth2.jose.jws.MacAlgorithm.from(algorithm))
+                .build();
     }
 }
