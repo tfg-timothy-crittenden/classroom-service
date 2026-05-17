@@ -166,6 +166,11 @@ class MaterialAccessAuthorizationServiceTest {
         public int deleteTeacherMembershipsByUserId(Long userId) {
             return 0;
         }
+
+        @Override
+        public void saveMember(Long classroomId, com.timcritt.tfg.domain.model.Member member) {
+            rolesByMembership.put(new Key(classroomId, member.getUserId()), member.getRole());
+        }
     }
 }
 

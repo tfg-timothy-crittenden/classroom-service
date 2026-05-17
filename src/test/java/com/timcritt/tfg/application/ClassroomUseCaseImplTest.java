@@ -241,6 +241,11 @@ class ClassroomUseCaseImplTest {
             return removed;
         }
 
+        @Override
+        public void saveMember(Long classroomId, Member member) {
+            memberships.put(new Key(classroomId, member.getUserId()), member.getRole());
+        }
+
         private record Key(Long classroomId, Long userId) { }
     }
 }
