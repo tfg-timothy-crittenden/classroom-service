@@ -180,8 +180,10 @@ public class ClassroomUseCaseImpl implements ClassroomUseCase {
         member.setRole(ClassroomRole.STUDENT);
         member.setCreatedAt(java.time.Instant.now());
         member.setUpdatedAt(java.time.Instant.now());
-        classroom.addMember(member);
-        return repository.save(classroom);
+        // Persist only the new member, not the whole classroom aggregate
+        memberRepository.saveMember(classroom.getId(), member);
+        // Optionally, reload the classroom to return the updated state
+        return repository.findById(classroom.getId());
     }
 
     @Override
