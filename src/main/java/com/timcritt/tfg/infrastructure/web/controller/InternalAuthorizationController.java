@@ -20,7 +20,7 @@ public class InternalAuthorizationController {
 
     private final MaterialAccessAuthorizationServiceAdapter materialAccessAuthorizationService;
 
-//    TODO: implement https so that the response to this call cab be trusted
+//    TODO: implement https so that the response to this call can be trusted
     @PostMapping("/material-access:check")
     public MaterialAccessCheckResponse checkMaterialAccess(@Valid @RequestBody MaterialAccessCheckRequest request) {
         log.info("Internal material access check requested: userId={}, materialId={}, action={}",

@@ -11,9 +11,11 @@ import com.timcritt.tfg.infrastructure.web.dtoMapper.ClassroomDtoMapper;
 import com.timcritt.tfg.infrastructure.web.dtoMapper.MaterialReferenceDtoMapper;
 import com.timcritt.tfg.infrastructure.web.dtoMapper.MemberDtoMapper;
 import com.timcritt.tfg.infrastructure.web.dtoMapper.RoleCheckDtoMapper;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,7 +26,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/api/classrooms")
+@RequestMapping(value = "/api/classrooms",
+        produces = MediaType.APPLICATION_JSON_VALUE)
 @RequiredArgsConstructor
 @Slf4j
 public class ClassroomController {
@@ -124,11 +127,15 @@ public class ClassroomController {
     }
 
     //Only be accessible by an authenticated system admin
-    @PostMapping("/{classroomId}/assign-teacher")
+    @PostMapping(
+            value = "/{classroomId}/assign-teacher",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     public ResponseEntity<ClassroomDto> assignTeacher(
             Authentication authentication,
             @PathVariable Long classroomId,
-            @RequestBody TeacherDto teacherDto
+            @Valid @RequestBody TeacherDto teacherDto
     ) {
         classroomAuthorizationService.ensureSystemAdmin(authentication);
         Classroom classroom = classroomService.assignTeacherToClassroom(classroomId, teacherDto);
@@ -145,11 +152,15 @@ public class ClassroomController {
     }
 
     //Only for authenticated admins
-    @PutMapping("/{classroomId}/materials")
+    @PutMapping(
+            value = "/{classroomId}/materials",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     public List<MaterialReferenceDto> updateClassroomMaterials(
             Authentication authentication,
             @PathVariable Long classroomId,
-            @RequestBody UpdateClassroomMaterialsRequest request
+            @Valid @RequestBody UpdateClassroomMaterialsRequest request
     ) {
         classroomAuthorizationService.ensureSystemAdmin(authentication);
         return materialReferenceUpdate.updateClassroomMaterials(classroomId, request).stream()
@@ -158,10 +169,13 @@ public class ClassroomController {
     }
 
     //Only accessible to authenticated admins
-    @PostMapping()
+    @PostMapping(
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     public ResponseEntity<ClassroomDto> createClassroom(
             Authentication authentication,
-            @RequestBody CreateClassroomRequest request
+            @Valid @RequestBody CreateClassroomRequest request
     ) {
         classroomAuthorizationService.ensureSystemAdmin(authentication);
         // Map the request to a domain Classroom
@@ -173,11 +187,15 @@ public class ClassroomController {
     }
 
     //Only accessible to authenticated admins
-    @PutMapping("/{classroomId}/teachers")
+    @PutMapping(
+            value = "/{classroomId}/teachers",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
     public ResponseEntity<ClassroomDto> syncTeachers(
             Authentication authentication,
             @PathVariable Long classroomId,
-            @RequestBody SyncTeachersRequest request
+            @Valid @RequestBody SyncTeachersRequest request
     ) {
         classroomAuthorizationService.ensureSystemAdmin(authentication);
         Classroom classroom = classroomService.syncTeachersForClassroom(classroomId, request.getTeachers());
@@ -193,8 +211,12 @@ public class ClassroomController {
     }
 
     //Only accessible to authenticated admins
-    @DeleteMapping("/batch")
-    public ResponseEntity<Void> deleteClassroomsBatch(Authentication authentication, @RequestBody DeleteClassroomsRequest request) {
+    @DeleteMapping(
+            value = "/batch",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<Void> deleteClassroomsBatch(Authentication authentication, @Valid @RequestBody DeleteClassroomsRequest request) {
         classroomAuthorizationService.ensureSystemAdmin(authentication);
         classroomService.deleteClassroomsByIds(request.getClassroomIds());
         return ResponseEntity.noContent().build();
@@ -212,10 +234,14 @@ public class ClassroomController {
     }
 
     //Accessible to any authenticated user
-    @PostMapping("/join")
-    public ResponseEntity<ClassroomDto> joinClassroom(
+    @PostMapping(
+            value = "/join",
+            consumes = MediaType.APPLICATION_JSON_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public ResponseEntity<JoinClassroomResponse> joinClassroom(
             @AuthenticationPrincipal Jwt jwt,
-            @RequestBody JoinClassroomRequest request) {
+            @Valid @RequestBody JoinClassroomRequest request) {
 
         if (jwt == null) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
@@ -237,7 +263,14 @@ public class ClassroomController {
                 surname
         );
 
-        return ResponseEntity.ok(classroomDtoMapper.toDto(classroom));
+        JoinClassroomResponse response = new JoinClassroomResponse(
+                classroom.getId(),
+                classroom.getName(),
+                ClassroomRole.STUDENT,
+                "Joined classroom successfully"
+        );
+
+        return ResponseEntity.ok(response);
     }
 
 }
