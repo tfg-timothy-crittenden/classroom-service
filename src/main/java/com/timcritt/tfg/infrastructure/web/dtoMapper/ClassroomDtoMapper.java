@@ -8,6 +8,7 @@ import com.timcritt.tfg.infrastructure.web.dto.TeacherSummaryDto;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Component
@@ -61,6 +62,7 @@ public class ClassroomDtoMapper {
             dto.setTeachers(teachers);
         } else {
             dto.setStudentCount(0);
+            dto.setTeachers(List.of());
         }
         return dto;
     }

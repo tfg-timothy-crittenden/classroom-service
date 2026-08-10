@@ -1,5 +1,8 @@
 package com.timcritt.tfg.application.service;
 
+import com.timcritt.tfg.application.exception.ClassroomNotFoundException;
+import com.timcritt.tfg.application.exception.MemberAlreadyInClassroomException;
+import com.timcritt.tfg.application.exception.TeacherAlreadyAssignedException;
 import com.timcritt.tfg.application.port.inbound.ClassroomUseCase;
 import com.timcritt.tfg.application.port.outbound.ClassroomRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.JoinCodeGenerator;
@@ -44,7 +47,7 @@ public class ClassroomUseCaseImpl implements ClassroomUseCase {
     public Classroom assignTeacherToClassroom(Long classroomId, Member member) {
         Classroom classroom = repository.findById(classroomId);
         if (classroom == null) {
-            throw new IllegalArgumentException("Classroom not found: " + classroomId);
+            throw new ClassroomNotFoundException(classroomId);
         }
         Member existingMember = classroom.getMembers().stream()
                 .filter(m -> m.getUserId().equals(member.getUserId()))
@@ -81,19 +84,6 @@ public class ClassroomUseCaseImpl implements ClassroomUseCase {
         repository.deleteByIds(classroomIds);
     }
 
-    // Custom exception for duplicate teacher assignment
-    public static class TeacherAlreadyAssignedException extends RuntimeException {
-        public TeacherAlreadyAssignedException(String message) {
-            super(message);
-        }
-    }
-
-    public static class MemberAlreadyInClassroomException extends RuntimeException {
-        public MemberAlreadyInClassroomException(String message) {
-            super(message);
-        }
-    }
-
     private String buildAlreadyMemberMessage(Classroom classroom, String name, String surname) {
         return fullName(name, surname) + " is already a member of " + classroom.getName();
     }
@@ -119,7 +109,7 @@ public class ClassroomUseCaseImpl implements ClassroomUseCase {
     public Classroom syncTeachersForClassroom(Long classroomId, List<Member> teachers) {
         Classroom classroom = repository.findById(classroomId);
         if (classroom == null) {
-            throw new IllegalArgumentException("Classroom not found: " + classroomId);
+            throw new ClassroomNotFoundException(classroomId);
         }
         teachers.forEach(teacher -> {
             Member existingMember = classroom.getMembers().stream()
@@ -162,7 +152,7 @@ public class ClassroomUseCaseImpl implements ClassroomUseCase {
         // Find classroom by join code
         Classroom classroom = repository.findByJoinCode(classCode);
         if (classroom == null) {
-            throw new IllegalArgumentException("Classroom not found for code: " + classCode);
+            throw new ClassroomNotFoundException("Classroom not found for code: " + classCode);
         }
         // Check if user is already a member
         boolean alreadyMember = classroom.getMembers().stream()

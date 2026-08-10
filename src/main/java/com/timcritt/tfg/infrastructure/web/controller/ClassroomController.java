@@ -11,6 +11,10 @@ import com.timcritt.tfg.infrastructure.web.dtoMapper.ClassroomDtoMapper;
 import com.timcritt.tfg.infrastructure.web.dtoMapper.MaterialReferenceDtoMapper;
 import com.timcritt.tfg.infrastructure.web.dtoMapper.MemberDtoMapper;
 import com.timcritt.tfg.infrastructure.web.dtoMapper.RoleCheckDtoMapper;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
+
 
 @RestController
 @RequestMapping(value = "/api/classrooms",
@@ -169,21 +174,27 @@ public class ClassroomController {
     }
 
     //Only accessible to authenticated admins
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Classroom created"),
+            @ApiResponse(responseCode = "400", description = "Invalid request body",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "403", description = "Admin privileges required",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class))),
+            @ApiResponse(responseCode = "409", description = "Classroom with same data already exists",
+                    content = @Content(schema = @Schema(implementation = ApiErrorResponse.class)))
+    })
     @PostMapping(
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
     )
-    public ResponseEntity<ClassroomDto> createClassroom(
+    public ResponseEntity<Void> createClassroom(
             Authentication authentication,
             @Valid @RequestBody CreateClassroomRequest request
     ) {
         classroomAuthorizationService.ensureSystemAdmin(authentication);
-        // Map the request to a domain Classroom
         Classroom classroom = new Classroom(null, request.getName(), request.getDescription());
-        // Save the classroom using the service
-        Classroom saved = classroomService.save(classroom);
-        // Return the DTO wrapped in a ResponseEntity
-        return ResponseEntity.ok(classroomDtoMapper.toDto(saved));
+        classroomService.save(classroom);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     //Only accessible to authenticated admins
