@@ -12,7 +12,8 @@ import org.springframework.boot.test.context.SpringBootTest;
         // Disable Flyway during the lightweight context load test
         "spring.flyway.enabled=false",
         // Disable trying to contact cloud config
-        "spring.cloud.config.enabled=false"
+        "spring.cloud.config.enabled=false",
+        "classroom.grpc.enabled=false"
 })
 class TfgApplicationTests {
 
