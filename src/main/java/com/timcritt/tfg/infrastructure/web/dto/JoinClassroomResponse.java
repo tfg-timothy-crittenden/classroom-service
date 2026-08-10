@@ -3,16 +3,21 @@ package com.timcritt.tfg.infrastructure.web.dto;
 import com.timcritt.tfg.domain.model.ClassroomRole;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-public class MemberDto {
+@AllArgsConstructor
+public class JoinClassroomResponse {
     @NotNull
-    private Long userId;
+    private Long classroomId;
+
+    @NotBlank
+    private String classroomName;
+
     @NotNull
     private ClassroomRole role;
+
     @NotBlank
-    private String name;
-    @NotBlank
-    private String surname;
+    private String message;
 }

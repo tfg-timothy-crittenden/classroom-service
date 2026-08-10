@@ -1,5 +1,6 @@
 package com.timcritt.tfg.application;
 
+import com.timcritt.tfg.application.exception.MemberAlreadyInClassroomException;
 import com.timcritt.tfg.application.port.outbound.ClassroomRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.JoinCodeGenerator;
 import com.timcritt.tfg.application.port.outbound.MemberRepositoryPort;
@@ -136,8 +137,8 @@ class ClassroomUseCaseImplTest {
         Classroom classroom = classroomWithMembers();
         classrooms.put(classroom.getId(), classroom);
 
-        ClassroomUseCaseImpl.MemberAlreadyInClassroomException exception = assertThrows(
-                ClassroomUseCaseImpl.MemberAlreadyInClassroomException.class,
+        MemberAlreadyInClassroomException exception = assertThrows(
+                MemberAlreadyInClassroomException.class,
                 () -> useCase.assignTeacherToClassroom(
                         7L,
                         new Member(null, 42L, "John", "Smith", ClassroomRole.TEACHER, Instant.now(), Instant.now())
@@ -152,8 +153,8 @@ class ClassroomUseCaseImplTest {
         Classroom classroom = classroomWithMembers();
         classrooms.put(classroom.getId(), classroom);
 
-        ClassroomUseCaseImpl.MemberAlreadyInClassroomException exception = assertThrows(
-                ClassroomUseCaseImpl.MemberAlreadyInClassroomException.class,
+        MemberAlreadyInClassroomException exception = assertThrows(
+                MemberAlreadyInClassroomException.class,
                 () -> useCase.joinClassroom(42L, "JOIN-123", "John", "Smith")
         );
 
@@ -165,8 +166,8 @@ class ClassroomUseCaseImplTest {
         Classroom classroom = classroomWithMembers();
         classrooms.put(classroom.getId(), classroom);
 
-        ClassroomUseCaseImpl.MemberAlreadyInClassroomException exception = assertThrows(
-                ClassroomUseCaseImpl.MemberAlreadyInClassroomException.class,
+        MemberAlreadyInClassroomException exception = assertThrows(
+                MemberAlreadyInClassroomException.class,
                 () -> useCase.syncTeachersForClassroom(
                         7L,
                         List.of(new Member(null, 42L, "John", "Smith", ClassroomRole.TEACHER, Instant.now(), Instant.now()))

@@ -15,6 +15,11 @@ public class ClassroomNotFoundException extends RuntimeException {
         this.classroomId = classroomId;
     }
 
+    public ClassroomNotFoundException(String message) {
+        super(message);
+        this.classroomId = null;
+    }
+
     public Long getClassroomId() {
         return classroomId;
     }
