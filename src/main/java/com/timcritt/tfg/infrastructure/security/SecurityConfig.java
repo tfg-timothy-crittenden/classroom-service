@@ -24,6 +24,7 @@ public class SecurityConfig {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/health", "/actuator/info", "/actuator/prometheus", "/error").permitAll()
                         .requestMatchers("/api/classrooms").authenticated()
                         .requestMatchers("/api/classrooms/*").authenticated()
                         .requestMatchers("/api/classrooms/*/members/teachers").authenticated()
