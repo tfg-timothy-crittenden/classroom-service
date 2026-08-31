@@ -17,17 +17,6 @@ public class MaterialReferenceJpaEntity {
     @Column(name = "material_id", nullable = false)
     private Long materialId;
 
-    @Column(nullable = false)
-    private String name;
-
-    private String description;
-
-    @Column(name = "part1_title")
-    private String part1Title;
-
-    @Column(name = "part2_title")
-    private String part2Title;
-
     @Enumerated(EnumType.STRING)
     @Column(name = "assigned_to_role")
     private ClassroomRole assignedToRole;
@@ -39,16 +28,9 @@ public class MaterialReferenceJpaEntity {
     public MaterialReferenceJpaEntity() {
     }
 
-    public MaterialReferenceJpaEntity(Long materialId, String name, String description, ClassroomRole assignedToRole) {
-        this(materialId, name, description, null, null, assignedToRole);
-    }
 
-    public MaterialReferenceJpaEntity(Long materialId, String name, String description, String part1Title, String part2Title, ClassroomRole assignedToRole) {
+    public MaterialReferenceJpaEntity(Long materialId, ClassroomRole assignedToRole) {
         this.materialId = materialId;
-        this.name = name;
-        this.description = description;
-        this.part1Title = part1Title;
-        this.part2Title = part2Title;
         this.assignedToRole = assignedToRole;
     }
 }

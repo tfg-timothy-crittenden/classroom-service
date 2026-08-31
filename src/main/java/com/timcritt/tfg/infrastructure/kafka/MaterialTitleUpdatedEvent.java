@@ -7,9 +7,11 @@ import java.time.Instant;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record MaterialTitleUpdatedEvent(
         Long materialId,
+        Long version,
         String materialTitle,
         String part1Title,
         String part2Title,
+        String description,
         Instant updatedAt
 ) {
 }

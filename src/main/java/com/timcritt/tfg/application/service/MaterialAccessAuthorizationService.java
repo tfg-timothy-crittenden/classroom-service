@@ -1,8 +1,8 @@
 package com.timcritt.tfg.application.service;
 
 import com.timcritt.tfg.application.port.outbound.MaterialReferenceAssignmentView;
-import com.timcritt.tfg.application.port.outbound.MaterialReferenceRepositoryPort;
-import com.timcritt.tfg.application.port.outbound.MemberRepositoryPort;
+import com.timcritt.tfg.application.port.outbound.repository.MaterialReferenceRepositoryPort;
+import com.timcritt.tfg.application.port.outbound.repository.MemberRepositoryPort;
 import com.timcritt.tfg.domain.model.ClassroomRole;
 
 import java.util.List;

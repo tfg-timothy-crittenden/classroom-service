@@ -10,6 +10,9 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 
 public interface MaterialReferenceJpaRepository extends JpaRepository<MaterialReferenceJpaEntity, Long> {
+
+
+
     @Query("SELECT m FROM MaterialReferenceJpaEntity m WHERE m.classroom.id = :classroomId")
     List<MaterialReferenceJpaEntity> findByClassroomId(@Param("classroomId") Long classroomId);
 
@@ -26,16 +29,4 @@ public interface MaterialReferenceJpaRepository extends JpaRepository<MaterialRe
     @Query("DELETE FROM MaterialReferenceJpaEntity m WHERE m.materialId = :materialId")
     int deleteByMaterialId(@Param("materialId") Long materialId);
 
-    @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("UPDATE MaterialReferenceJpaEntity m SET " +
-            "m.name = CASE WHEN :title IS NULL THEN m.name ELSE :title END, " +
-            "m.part1Title = CASE WHEN :part1Title IS NULL THEN m.part1Title ELSE :part1Title END, " +
-            "m.part2Title = CASE WHEN :part2Title IS NULL THEN m.part2Title ELSE :part2Title END " +
-            "WHERE m.materialId = :materialId")
-    int updateTitlesByMaterialId(
-            @Param("materialId") Long materialId,
-            @Param("title") String title,
-            @Param("part1Title") String part1Title,
-            @Param("part2Title") String part2Title
-    );
 }

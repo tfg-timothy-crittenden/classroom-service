@@ -1,8 +1,9 @@
 package com.timcritt.tfg.infrastructure.web;
 
 import com.timcritt.tfg.application.exception.ClassroomNotFoundException;
-import com.timcritt.tfg.application.exception.MemberAlreadyInClassroomException;
-import com.timcritt.tfg.application.exception.TeacherAlreadyAssignedException;
+import com.timcritt.tfg.domain.exception.MemberAlreadyInClassroomException;
+import com.timcritt.tfg.domain.exception.MemberNotFoundException;
+import com.timcritt.tfg.domain.exception.TeacherAlreadyAssignedException;
 import com.timcritt.tfg.infrastructure.web.dto.ApiErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -31,6 +32,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ClassroomNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<ApiErrorResponse> handleClassroomNotFoundException(ClassroomNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiErrorResponse(ex.getMessage()));
+    }
+
+    @ExceptionHandler(MemberNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ResponseEntity<ApiErrorResponse> handleMemberNotFoundException(MemberNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiErrorResponse(ex.getMessage()));
     }
 

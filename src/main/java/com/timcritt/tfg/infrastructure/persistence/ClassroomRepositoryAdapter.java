@@ -1,8 +1,7 @@
 package com.timcritt.tfg.infrastructure.persistence;
 
-import com.timcritt.tfg.application.port.outbound.ClassroomRepositoryPort;
+import com.timcritt.tfg.application.port.outbound.repository.ClassroomRepositoryPort;
 import com.timcritt.tfg.domain.model.Classroom;
-import com.timcritt.tfg.infrastructure.persistence.jpa.MemberJpaEntity;
 import com.timcritt.tfg.infrastructure.persistence.jpa.ClassroomJpaEntity;
 import com.timcritt.tfg.infrastructure.persistence.spring.ClassroomJpaRepository;
 import org.springframework.stereotype.Repository;
@@ -63,24 +62,5 @@ public class ClassroomRepositoryAdapter implements ClassroomRepositoryPort {
         classroomJpaRepository.deleteAllById(ids);
     }
 
-    @Override
-    public boolean removeMemberFromClassroom(Long classroomId, Long userId) {
-        ClassroomJpaEntity entity = classroomJpaRepository.findByIdWithMembersAndMaterials(classroomId).orElse(null);
-        if (entity == null || entity.getMembers() == null) {
-            return false;
-        }
 
-        MemberJpaEntity memberToRemove = entity.getMembers().stream()
-                .filter(member -> member.getUserId().equals(userId))
-                .findFirst()
-                .orElse(null);
-
-        if (memberToRemove == null) {
-            return false;
-        }
-
-        entity.removeMember(memberToRemove);
-        classroomJpaRepository.save(entity);
-        return true;
-    }
 }

@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -25,8 +26,6 @@ class ClassroomEntityMapperTest {
     private static final String TEACHER_NAME = "Jane";
     private static final String TEACHER_SURNAME = "Doe";
     private static final Long MATERIAL_ID = 100L;
-    private static final String MATERIAL_NAME = "Algebra sheet";
-    private static final String MATERIAL_TYPE = "Worksheet";
     private static final Long STUDENT_USER_ID = 42L;
     private static final String STUDENT_NAME = "John";
     private static final String STUDENT_SURNAME = "Smith";
@@ -36,11 +35,12 @@ class ClassroomEntityMapperTest {
         Classroom classroom = new Classroom(CLASSROOM_ID, CLASSROOM_NAME, CLASSROOM_DESCRIPTION, JOIN_CODE);
         classroom.setCreatedAt(Instant.now());
         classroom.setUpdatedAt(Instant.now());
-        classroom.setMembers(List.of(
+        classroom.setMembers(Map.of(
+                TEACHER_USER_ID,
                 new Member(null, TEACHER_USER_ID, TEACHER_NAME, TEACHER_SURNAME, ClassroomRole.TEACHER, Instant.now(), Instant.now())
         ));
         classroom.setMaterials(List.of(
-                new MaterialReference(null, MATERIAL_ID, MATERIAL_NAME, MATERIAL_TYPE, ClassroomRole.TEACHER)
+                new MaterialReference(null, MATERIAL_ID, ClassroomRole.TEACHER)
         ));
 
         var entity = ClassroomEntityMapper.toEntity(classroom);
@@ -50,7 +50,6 @@ class ClassroomEntityMapperTest {
         assertEquals(1, roundTrip.getMembers().size());
         assertEquals(1, roundTrip.getMaterials().size());
         assertEquals(100L, roundTrip.getMaterials().getFirst().getMaterialId());
-        assertEquals("Algebra sheet", roundTrip.getMaterials().getFirst().getName());
         assertEquals(ClassroomRole.TEACHER, roundTrip.getMaterials().getFirst().getAssignedToRole());
     }
 

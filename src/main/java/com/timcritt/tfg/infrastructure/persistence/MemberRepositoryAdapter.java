@@ -1,6 +1,6 @@
 package com.timcritt.tfg.infrastructure.persistence;
 
-import com.timcritt.tfg.application.port.outbound.MemberRepositoryPort;
+import com.timcritt.tfg.application.port.outbound.repository.MemberRepositoryPort;
 import com.timcritt.tfg.domain.model.ClassroomRole;
 import com.timcritt.tfg.domain.model.Member;
 import com.timcritt.tfg.infrastructure.persistence.spring.MemberJpaRepository;

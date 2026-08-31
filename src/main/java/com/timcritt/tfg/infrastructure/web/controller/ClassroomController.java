@@ -2,10 +2,10 @@ package com.timcritt.tfg.infrastructure.web.controller;
 
 import com.timcritt.tfg.domain.model.Classroom;
 import com.timcritt.tfg.domain.model.ClassroomRole;
-import com.timcritt.tfg.infrastructure.service.ClassroomServiceAdapter;
+import com.timcritt.tfg.infrastructure.service.ClassroomDirectoryAdapter;
+import com.timcritt.tfg.infrastructure.service.ClassroomManagementAdapter;
 import com.timcritt.tfg.infrastructure.service.ClassroomAuthorizationService;
-import com.timcritt.tfg.infrastructure.service.MaterialReferenceServiceAdapter;
-import com.timcritt.tfg.infrastructure.service.MaterialReferenceUpdateServiceAdapter;
+
 import com.timcritt.tfg.infrastructure.web.dto.*;
 import com.timcritt.tfg.infrastructure.web.dtoMapper.ClassroomDtoMapper;
 import com.timcritt.tfg.infrastructure.web.dtoMapper.MaterialReferenceDtoMapper;
@@ -38,17 +38,18 @@ import java.util.stream.Collectors;
 public class ClassroomController {
 
 
-    private final ClassroomServiceAdapter classroomService;
+    private final ClassroomManagementAdapter classroomManagementAdapter;
+    private final ClassroomDirectoryAdapter classroomDirectoryAdapter;
     private final ClassroomAuthorizationService classroomAuthorizationService;
     private final ClassroomDtoMapper classroomDtoMapper;
-    private final MaterialReferenceServiceAdapter materialReferenceQuery;
-    private final MaterialReferenceUpdateServiceAdapter materialReferenceUpdate;
+
+
 
     //Only accessible to members of the classroom and to admin
     @GetMapping("/{classroomId}/members/teachers")
     public List<MemberDto> getTeachersByClassroom(Authentication authentication, @PathVariable Long classroomId) {
         classroomAuthorizationService.ensureCanReadTeachers(authentication, classroomId);
-        return classroomService.getTeachersByClassroomId(classroomId).stream()
+        return classroomManagementAdapter.getTeachersByClassroomId(classroomId).stream()
                 .map(MemberDtoMapper::toDto)
                 .collect(Collectors.toList());
     }
@@ -57,7 +58,7 @@ public class ClassroomController {
     @GetMapping("/{classroomId}/members/students")
     public List<MemberDto> getStudentsByClassroom(Authentication authentication, @PathVariable Long classroomId) {
         classroomAuthorizationService.ensureCanReadStudents(authentication, classroomId);
-        return classroomService.getStudentsByClassroomId(classroomId).stream()
+        return classroomManagementAdapter.getStudentsByClassroomId(classroomId).stream()
                 .map(MemberDtoMapper::toDto)
                 .collect(Collectors.toList());
     }
@@ -66,7 +67,7 @@ public class ClassroomController {
     @GetMapping("/member/{userId}")
     public List<ClassroomDto> getClassroomsByMember(Authentication authentication, @PathVariable Long userId) {
         classroomAuthorizationService.ensureCanReadMemberClassrooms(authentication, userId);
-        return classroomService.getClassroomsByMember(userId).stream()
+        return classroomDirectoryAdapter.getClassroomsByMember(userId).stream()
                 .map(classroomDtoMapper::toDto)
                 .collect(Collectors.toList());
     }
@@ -75,7 +76,7 @@ public class ClassroomController {
     @GetMapping("/summary/member/{userId}")
     public List<ClassroomSummaryDto> getClassroomSummariesByMember(Authentication authentication, @PathVariable Long userId) {
         classroomAuthorizationService.ensureCanReadMemberSummaries(authentication, userId);
-        return classroomService.getClassroomsByMember(userId).stream()
+        return classroomDirectoryAdapter.getClassroomsByMember(userId).stream()
                 .map(classroomDtoMapper::toSummaryDto)
                 .collect(Collectors.toList());
     }
@@ -88,33 +89,29 @@ public class ClassroomController {
             @PathVariable Long userId
     ) {
         classroomAuthorizationService.ensureCanRemoveMember(authentication, classroomId, userId);
-        boolean removed = classroomService.removeMemberFromClassroom(classroomId, userId);
-        if (!removed) {
-            return ResponseEntity.notFound().build();
-        }
+        classroomManagementAdapter.removeMemberFromClassroom(classroomId, userId);
         return ResponseEntity.noContent().build();
+
     }
 
     //Only for ad //TODO check that this is still needed
     @GetMapping("/{classroomId}/materials")
     public List<MaterialReferenceDto> getMaterialsByClassroom(Authentication authentication, @PathVariable Long classroomId) {
         classroomAuthorizationService.ensureSystemAdmin(authentication);
-        return materialReferenceQuery.getMaterialsByClassroom(classroomId).stream()
+        return classroomManagementAdapter.getClassroomMaterials(classroomId).stream()
                 .map(MaterialReferenceDtoMapper::toDto)
                 .collect(Collectors.toList());
     }
 
     //Only accessible to members of that classroom and system admin. Teachers of the classroom can see all. Student members of classroom can only access material assigned to student members.
     @GetMapping("/{classroomId}/materials/role/{role}")
-    public List<MaterialReferenceDto> getMaterialsByClassroomAndRole(
+    public List<MaterialReferenceWithDetailsDto> getMaterialsByClassroomAndRole(
             Authentication authentication,
             @PathVariable Long classroomId,
             @PathVariable ClassroomRole role
     ) {
         classroomAuthorizationService.ensureCanReadMaterials(authentication, classroomId, role);
-        return materialReferenceQuery.getMaterialsByClassroomAndRole(classroomId, role).stream()
-                .map(MaterialReferenceDtoMapper::toDto)
-                .collect(Collectors.toList());
+        return classroomManagementAdapter.getClassroomMaterialsByRole(classroomId, role);
     }
 
     //Only accessible to the authenticated user with that userId
@@ -127,7 +124,7 @@ public class ClassroomController {
         return RoleCheckDtoMapper.toDto(
                 classroomId,
                 userId,
-                classroomService.getRoleInClassroom(classroomId, userId).orElse(null)
+                classroomManagementAdapter.getRoleInClassroom(classroomId, userId).orElse(null)
         );
     }
 
@@ -143,7 +140,7 @@ public class ClassroomController {
             @Valid @RequestBody TeacherDto teacherDto
     ) {
         classroomAuthorizationService.ensureSystemAdmin(authentication);
-        Classroom classroom = classroomService.assignTeacherToClassroom(classroomId, teacherDto);
+        Classroom classroom = classroomManagementAdapter.assignTeacherToClassroom(classroomId, teacherDto);
         return ResponseEntity.ok(classroomDtoMapper.toDto(classroom));
     }
 
@@ -151,7 +148,7 @@ public class ClassroomController {
     @GetMapping
     public List<ClassroomSummaryDto> getAllClassroomSummaries(Authentication authentication) {
         classroomAuthorizationService.ensureSystemAdmin(authentication);
-        return classroomService.getAllClassrooms().stream()
+        return classroomDirectoryAdapter.getAllClassrooms().stream()
                 .map(classroomDtoMapper::toSummaryDto)
                 .collect(Collectors.toList());
     }
@@ -159,18 +156,17 @@ public class ClassroomController {
     //Only for authenticated admins
     @PutMapping(
             value = "/{classroomId}/materials",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
+            consumes = MediaType.APPLICATION_JSON_VALUE
+
     )
-    public List<MaterialReferenceDto> updateClassroomMaterials(
+    public ResponseEntity<Void> updateClassroomMaterials(
             Authentication authentication,
             @PathVariable Long classroomId,
             @Valid @RequestBody UpdateClassroomMaterialsRequest request
     ) {
         classroomAuthorizationService.ensureSystemAdmin(authentication);
-        return materialReferenceUpdate.updateClassroomMaterials(classroomId, request).stream()
-                .map(MaterialReferenceDtoMapper::toDto)
-                .collect(Collectors.toList());
+        classroomManagementAdapter.replaceMaterials(classroomId, request);
+        return ResponseEntity.ok().build();
     }
 
     //Only accessible to authenticated admins
@@ -193,7 +189,7 @@ public class ClassroomController {
     ) {
         classroomAuthorizationService.ensureSystemAdmin(authentication);
         Classroom classroom = new Classroom(null, request.getName(), request.getDescription());
-        classroomService.save(classroom);
+        classroomManagementAdapter.save(classroom);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
@@ -209,7 +205,7 @@ public class ClassroomController {
             @Valid @RequestBody SyncTeachersRequest request
     ) {
         classroomAuthorizationService.ensureSystemAdmin(authentication);
-        Classroom classroom = classroomService.syncTeachersForClassroom(classroomId, request.getTeachers());
+        Classroom classroom = classroomManagementAdapter.syncTeachersForClassroom(classroomId, request.getTeachers());
         return ResponseEntity.ok(classroomDtoMapper.toDto(classroom));
     }
 
@@ -217,8 +213,8 @@ public class ClassroomController {
     @DeleteMapping("/{classroomId}")
     public ResponseEntity<Void> deleteClassroom(Authentication authentication, @PathVariable Long classroomId) {
         classroomAuthorizationService.ensureSystemAdmin(authentication);
-        classroomService.deleteClassroomById(classroomId);
-        return ResponseEntity.noContent().build();
+        classroomDirectoryAdapter.deleteClassroomById(classroomId);
+        return ResponseEntity.ok().build();
     }
 
     //Only accessible to authenticated admins
@@ -229,15 +225,15 @@ public class ClassroomController {
     )
     public ResponseEntity<Void> deleteClassroomsBatch(Authentication authentication, @Valid @RequestBody DeleteClassroomsRequest request) {
         classroomAuthorizationService.ensureSystemAdmin(authentication);
-        classroomService.deleteClassroomsByIds(request.getClassroomIds());
-        return ResponseEntity.noContent().build();
+        classroomDirectoryAdapter.deleteClassroomsByIds(request.getClassroomIds());
+        return ResponseEntity.ok().build();
     }
 
     //Only accessible to teachers of that classroom and admins
     @GetMapping("/{classroomId}/join-code")
     public ResponseEntity<String> getJoinCode(Authentication authentication, @PathVariable Long classroomId) {
         classroomAuthorizationService.ensureCanReadJoinCode(authentication, classroomId);
-        Classroom classroom = classroomService.getClassroomById(classroomId);
+        Classroom classroom = classroomDirectoryAdapter.getClassroomById(classroomId);
         if (classroom == null) {
             return ResponseEntity.notFound().build();
         }
@@ -267,7 +263,7 @@ public class ClassroomController {
         String name = jwt.getClaimAsString("name");
         String surname = jwt.getClaimAsString("surname");
 
-        Classroom classroom = classroomService.joinClassroom(
+        Classroom classroom = classroomManagementAdapter.joinClassroom(
                 userId,
                 request.getJoinCode(),
                 name,

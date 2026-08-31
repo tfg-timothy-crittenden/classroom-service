@@ -25,11 +25,11 @@ public class ClassroomDtoMapper {
         dto.setUpdatedAt(classroom.getUpdatedAt());
         // Only map teachers and student count
         if (classroom.getMembers() != null) {
-            dto.setMembers(classroom.getMembers().stream()
+            dto.setMembers(classroom.getMembers().values().stream()
                 .filter(member -> member.getRole() == ClassroomRole.TEACHER)
                 .map(MemberDtoMapper::toDto)
                 .collect(java.util.stream.Collectors.toList()));
-            dto.setStudentCount((int) classroom.getMembers().stream()
+            dto.setStudentCount((int) classroom.getMembers().values().stream()
                 .filter(member -> member.getRole() == ClassroomRole.STUDENT)
                 .count());
         } else {
@@ -51,11 +51,11 @@ public class ClassroomDtoMapper {
 
         if (classroom.getMembers() != null) {
             // Count students
-            dto.setStudentCount((int) classroom.getMembers().stream()
+            dto.setStudentCount((int) classroom.getMembers().values().stream()
                 .filter(member -> member.getRole() == ClassroomRole.STUDENT)
                 .count());
             // Map teachers
-            List<TeacherSummaryDto> teachers = classroom.getMembers().stream()
+            List<TeacherSummaryDto> teachers = classroom.getMembers().values().stream()
                 .filter(member -> member.getRole() == ClassroomRole.TEACHER)
                 .map(teacherSummaryDtoMapper::toTeacherSummaryDto)
                 .collect(Collectors.toList());

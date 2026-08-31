@@ -73,4 +73,11 @@ public class Member {
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
+
+    /** Returns the member's full name, trimming any null/blank parts. */
+    public String fullName() {
+        String safeName = name == null ? "" : name.trim();
+        String safeSurname = surname == null ? "" : surname.trim();
+        return (safeName + " " + safeSurname).trim();
+    }
 }

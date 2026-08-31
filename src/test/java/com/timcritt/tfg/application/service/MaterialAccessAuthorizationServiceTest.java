@@ -3,9 +3,10 @@ package com.timcritt.tfg.authorization;
 import com.timcritt.tfg.application.service.MaterialAccessAuthorizationService;
 import com.timcritt.tfg.application.service.MaterialAccessDecision;
 import com.timcritt.tfg.application.port.outbound.MaterialReferenceAssignmentView;
-import com.timcritt.tfg.application.port.outbound.MaterialReferenceRepositoryPort;
-import com.timcritt.tfg.application.port.outbound.MemberRepositoryPort;
+import com.timcritt.tfg.application.port.outbound.repository.MaterialReferenceRepositoryPort;
+import com.timcritt.tfg.application.port.outbound.repository.MemberRepositoryPort;
 import com.timcritt.tfg.domain.model.ClassroomRole;
+import com.timcritt.tfg.domain.model.MaterialReference;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -147,6 +148,23 @@ class MaterialAccessAuthorizationServiceTest {
             return assignments.stream()
                     .filter(assignment -> assignment.materialId().equals(materialId))
                     .toList();
+        }
+
+        @Override
+        public List<MaterialReference> findByMaterialId(Long id) {
+            return List.of();
+        }
+
+
+
+        @Override
+        public int deleteByMaterialId(Long materialId) {
+            return 0;
+        }
+
+        @Override
+        public void save(MaterialReference materialReference) {
+
         }
     }
 

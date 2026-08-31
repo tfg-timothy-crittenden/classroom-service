@@ -15,10 +15,6 @@ public record UpdateClassroomMaterialsCommand(
 ) {
     public record MaterialAssignment(
             Long materialId,
-            String name,
-            String description,
-            String part1Title,
-            String part2Title,
             ClassroomRole assignedToRole
     ) {}
 }

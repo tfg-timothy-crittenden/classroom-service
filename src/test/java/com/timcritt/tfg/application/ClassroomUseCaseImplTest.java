@@ -1,12 +1,16 @@
 package com.timcritt.tfg.application;
 
-import com.timcritt.tfg.application.exception.MemberAlreadyInClassroomException;
-import com.timcritt.tfg.application.port.outbound.ClassroomRepositoryPort;
-import com.timcritt.tfg.application.port.outbound.JoinCodeGenerator;
-import com.timcritt.tfg.application.port.outbound.MemberRepositoryPort;
-import com.timcritt.tfg.application.service.ClassroomUseCaseImpl;
+import com.timcritt.tfg.application.exception.ClassroomNotFoundException;
+import com.timcritt.tfg.application.port.outbound.*;
+import com.timcritt.tfg.application.port.outbound.repository.ClassroomRepositoryPort;
+import com.timcritt.tfg.application.port.outbound.repository.MaterialReferenceRepositoryPort;
+import com.timcritt.tfg.application.port.outbound.repository.MemberRepositoryPort;
+import com.timcritt.tfg.domain.exception.MemberAlreadyInClassroomException;
+import com.timcritt.tfg.domain.exception.TeacherAlreadyAssignedException;
+import com.timcritt.tfg.application.service.useCase.ClassroomManagementUseCaseImpl;
 import com.timcritt.tfg.domain.model.Classroom;
 import com.timcritt.tfg.domain.model.ClassroomRole;
+import com.timcritt.tfg.domain.model.MaterialReference;
 import com.timcritt.tfg.domain.model.Member;
 import org.junit.jupiter.api.Test;
 
@@ -27,6 +31,12 @@ class ClassroomUseCaseImplTest {
 
     private final Map<Long, Classroom> classrooms = new ConcurrentHashMap<>();
     private final InMemoryMemberRepository memberRepository = new InMemoryMemberRepository();
+    private final InMemoryMaterialReferenceRepository materialReferenceRepository = new InMemoryMaterialReferenceRepository() {
+        @Override
+        public List<MaterialReference> findByMaterialId(Long id) {
+            return List.of();
+        }
+    };
 
     private final ClassroomRepositoryPort repository = new ClassroomRepositoryPort() {
         @Override
@@ -53,7 +63,7 @@ class ClassroomUseCaseImplTest {
         @Override
         public List<Classroom> findByMemberUserId(Long userId) {
             return classrooms.values().stream()
-                    .filter(classroom -> classroom.getMembers().stream().anyMatch(member -> member.getUserId().equals(userId)))
+                    .filter(classroom -> classroom.getMembers().containsKey(userId))
                     .toList();
         }
 
@@ -69,54 +79,25 @@ class ClassroomUseCaseImplTest {
                     .findFirst()
                     .orElse(null);
         }
-
-        @Override
-        public boolean removeMemberFromClassroom(Long classroomId, Long userId) {
-            Classroom classroom = classrooms.get(classroomId);
-            if (classroom == null) {
-                return false;
-            }
-
-            Member memberToRemove = classroom.getMembers().stream()
-                    .filter(member -> member.getUserId().equals(userId))
-                    .findFirst()
-                    .orElse(null);
-
-            if (memberToRemove == null) {
-                return false;
-            }
-
-            classroom.removeMember(memberToRemove);
-            return true;
-        }
-
     };
 
     private final JoinCodeGenerator joinCodeGenerator = () -> "JOIN-123";
-    private final ClassroomUseCaseImpl useCase = new ClassroomUseCaseImpl(repository, memberRepository, joinCodeGenerator);
+    private final ClassroomManagementUseCaseImpl useCase = new ClassroomManagementUseCaseImpl(repository, memberRepository, joinCodeGenerator, materialReferenceRepository);
 
     @Test
     void removesExistingMemberFromClassroom() {
         Classroom classroom = classroomWithMembers();
         classrooms.put(classroom.getId(), classroom);
 
-        boolean removed = useCase.removeMemberFromClassroom(7L, 42L);
+       useCase.removeMemberFromClassroom(7L, 42L);
 
-        assertTrue(removed);
+
         Classroom updated = classrooms.get(7L);
         assertNotNull(updated);
-        assertFalse(updated.getMembers().stream().anyMatch(member -> member.getUserId().equals(42L)));
+        assertFalse(updated.getMembers().containsKey(42L));
     }
 
-    @Test
-    void returnsFalseWhenMemberDoesNotExist() {
-        Classroom classroom = classroomWithMembers();
-        classrooms.put(classroom.getId(), classroom);
 
-        boolean removed = useCase.removeMemberFromClassroom(7L, 999L);
-
-        assertFalse(removed);
-    }
 
     @Test
     void revokesTeacherRoleFromUserAcrossAllClassroomsAndKeepsStudentMemberships() {
@@ -139,13 +120,10 @@ class ClassroomUseCaseImplTest {
 
         MemberAlreadyInClassroomException exception = assertThrows(
                 MemberAlreadyInClassroomException.class,
-                () -> useCase.assignTeacherToClassroom(
-                        7L,
-                        new Member(null, 42L, "John", "Smith", ClassroomRole.TEACHER, Instant.now(), Instant.now())
-                )
+                () -> useCase.assignTeacherToClassroom(7L, 42L, "John", "Smith")
         );
 
-        assertEquals("John Smith is already a member of Math", exception.getMessage());
+        assertEquals("John Smith is already a student in Math", exception.getMessage());
     }
 
     @Test
@@ -158,7 +136,7 @@ class ClassroomUseCaseImplTest {
                 () -> useCase.joinClassroom(42L, "JOIN-123", "John", "Smith")
         );
 
-        assertEquals("John Smith is already a member of Math", exception.getMessage());
+        assertEquals("John Smith is already a student in Math", exception.getMessage());
     }
 
     @Test
@@ -174,7 +152,161 @@ class ClassroomUseCaseImplTest {
                 )
         );
 
-        assertEquals("John Smith is already a member of Math", exception.getMessage());
+        assertEquals("John Smith is already a student in Math", exception.getMessage());
+    }
+
+    // ── assignTeacherToClassroom ──────────────────────────────────────────────
+
+    @Test
+    void assignTeacher_successfullyAddsTeacherToClassroom() {
+        Classroom classroom = new Classroom(7L, "Math", "Math class");
+        classrooms.put(classroom.getId(), classroom);
+
+        Member newTeacher = new Member(null, 99L, "Alice", "Brown", ClassroomRole.TEACHER, Instant.now(), Instant.now());
+        Classroom updated = useCase.assignTeacherToClassroom(7L, 99L, "Alice", "Brown");
+
+        assertTrue(updated.getMembers().containsKey(99L));
+    }
+
+    @Test
+    void assignTeacher_throwsClassroomNotFoundWhenClassroomMissing() {
+        assertThrows(
+                ClassroomNotFoundException.class,
+                () -> useCase.assignTeacherToClassroom(999L, 1L, "X", "Y")
+        );
+    }
+
+    @Test
+    void assignTeacher_throwsTeacherAlreadyAssignedWhenTeacherAlreadyInClassroom() {
+        Classroom classroom = classroomWithTeacher(); // has teacher userId=42
+        classrooms.put(classroom.getId(), classroom);
+
+        assertThrows(
+                TeacherAlreadyAssignedException.class,
+                () -> useCase.assignTeacherToClassroom(7L, 42L, "Jane", "Doe")
+        );
+    }
+
+    // ── joinClassroom ─────────────────────────────────────────────────────────
+
+    @Test
+    void joinClassroom_successfullyAddsStudentMembership() {
+        Classroom classroom = new Classroom(7L, "Math", "Math class");
+        classroom.setJoinCode("JOIN-123");
+        classrooms.put(classroom.getId(), classroom);
+
+        useCase.joinClassroom(55L, "JOIN-123", "New", "Student");
+
+        Classroom updated = classrooms.get(7L);
+        assertTrue(updated.getMembers().containsKey(55L));
+        assertEquals(ClassroomRole.STUDENT, updated.getMembers().get(55L).getRole());
+    }
+
+    @Test
+    void joinClassroom_throwsClassroomNotFoundWhenJoinCodeInvalid() {
+        assertThrows(
+                ClassroomNotFoundException.class,
+                () -> useCase.joinClassroom(1L, "BAD-CODE", "X", "Y")
+        );
+    }
+
+    // ── syncTeachersForClassroom ──────────────────────────────────────────────
+
+    @Test
+    void syncTeachers_throwsClassroomNotFoundWhenClassroomMissing() {
+        assertThrows(
+                ClassroomNotFoundException.class,
+                () -> useCase.syncTeachersForClassroom(999L, List.of())
+        );
+    }
+
+    @Test
+    void syncTeachers_removesTeachersNotInNewList() {
+        Classroom classroom = classroomWithTeacher(); // teacher userId=42
+        classrooms.put(classroom.getId(), classroom);
+
+        useCase.syncTeachersForClassroom(7L, List.of()); // empty list → remove all teachers
+
+        Classroom updated = classrooms.get(7L);
+        assertTrue(updated.getMembers().values().stream().noneMatch(m -> m.getRole() == ClassroomRole.TEACHER));
+    }
+
+    @Test
+    void syncTeachers_addsNewTeachersNotCurrentlyInClassroom() {
+        Classroom classroom = new Classroom(7L, "Math", "Math class");
+        classrooms.put(classroom.getId(), classroom);
+
+        Member newTeacher = new Member(null, 77L, "New", "Teacher", ClassroomRole.TEACHER, Instant.now(), Instant.now());
+        useCase.syncTeachersForClassroom(7L, List.of(newTeacher));
+
+        Classroom updated = classrooms.get(7L);
+        assertTrue(updated.getMembers().containsKey(77L));
+    }
+
+    @Test
+    void syncTeachers_keepsExistingTeacherProfileUnchanged() {
+        Classroom classroom = classroomWithTeacher(); // teacher userId=42, name Jane Doe
+        classrooms.put(classroom.getId(), classroom);
+
+        Member updatedTeacher = new Member(null, 42L, "Janet", "Doeson", ClassroomRole.TEACHER, Instant.now(), Instant.now());
+        useCase.syncTeachersForClassroom(7L, List.of(updatedTeacher));
+
+        Classroom updated = classrooms.get(7L);
+        Member teacher = updated.getMembers().get(42L);
+        assertNotNull(teacher);
+        assertEquals("Jane", teacher.getName());
+        assertEquals("Doe", teacher.getSurname());
+    }
+
+    // ── save ──────────────────────────────────────────────────────────────────
+
+    @Test
+    void save_generatesJoinCodeWhenAbsent() {
+        Classroom classroom = new Classroom(10L, "No Code", "desc");
+        classrooms.put(classroom.getId(), classroom);
+
+        Classroom saved = useCase.save(classroom);
+
+        assertEquals("JOIN-123", saved.getJoinCode());
+    }
+
+    @Test
+    void save_keepsExistingJoinCodeWhenPresent() {
+        Classroom classroom = new Classroom(10L, "Has Code", "desc");
+        classroom.setJoinCode("EXISTING-CODE");
+        classrooms.put(classroom.getId(), classroom);
+
+        Classroom saved = useCase.save(classroom);
+
+        assertEquals("EXISTING-CODE", saved.getJoinCode());
+    }
+
+    // ── getMembersByRole ──────────────────────────────────────────────────────
+
+    @Test
+    void getMembersByRole_returnsOnlyMembersWithMatchingRole() {
+        Classroom classroom = classroomWithMembers(); // 1 teacher (43), 1 student (42)
+        classrooms.put(classroom.getId(), classroom);
+
+        List<Member> students = useCase.getMembersByRole(7L, ClassroomRole.STUDENT);
+        List<Member> teachers = useCase.getMembersByRole(7L, ClassroomRole.TEACHER);
+
+        assertEquals(1, students.size());
+        assertEquals(42L, students.getFirst().getUserId());
+        assertEquals(1, teachers.size());
+        assertEquals(43L, teachers.getFirst().getUserId());
+    }
+
+    @Test
+    void getMembersByRole_throwsWhenClassroomNotFound() {
+        assertThrows(ClassroomNotFoundException.class, () -> useCase.getMembersByRole(999L, ClassroomRole.STUDENT));
+    }
+
+    // ── revokeTeacherRoleFromUser ─────────────────────────────────────────────
+
+    @Test
+    void revokeTeacherRole_throwsWhenUserIdIsNull() {
+        assertThrows(IllegalArgumentException.class, () -> useCase.revokeTeacherRoleFromUser(null));
     }
 
     private Classroom classroomWithMembers() {
@@ -249,5 +381,39 @@ class ClassroomUseCaseImplTest {
 
         private record Key(Long classroomId, Long userId) { }
     }
+
+//    TODO implement the actual in-memory repository with real methods that return something. Do it somewhere centally so we can reuse it.
+    private static abstract class InMemoryMaterialReferenceRepository implements MaterialReferenceRepositoryPort {
+
+
+        @Override
+        public List<MaterialReference> findByClassroomId(Long classroomId) {
+            return List.of();
+        }
+
+        @Override
+        public List<MaterialReference> findByClassroomIdAndAssignedToRole(Long classroomId, ClassroomRole role) {
+            return List.of();
+        }
+
+        @Override
+        public List<MaterialReferenceAssignmentView> findAssignmentsByMaterialId(Long materialId) {
+            return List.of();
+        }
+
+
+
+    @Override
+    public int deleteByMaterialId(Long materialId) {
+        return 0;
+    }
+
+    @Override
+    public void save(MaterialReference materialReference) {
+
+    }
+
+
+}
 }
 

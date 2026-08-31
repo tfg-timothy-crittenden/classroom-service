@@ -40,10 +40,15 @@ public final class ClassroomEntityMapper {
 
 
         if (entity.getMembers() != null) {
-            domain.setMembers(distinctByKey(entity.getMembers(), MemberJpaEntity::getUserId)
+            Map<Long, com.timcritt.tfg.domain.model.Member> membersMap = distinctByKey(entity.getMembers(), MemberJpaEntity::getUserId)
                     .stream()
                     .map(memberMapper)
-                    .collect(Collectors.toList()));
+                    .collect(Collectors.toMap(
+                            com.timcritt.tfg.domain.model.Member::getUserId,
+                            m -> m,
+                            (a, b) -> a,
+                            java.util.LinkedHashMap::new));
+            domain.setMembers(membersMap);
         }
 
         if (entity.getMaterials() != null) {
@@ -81,8 +86,7 @@ public final class ClassroomEntityMapper {
         entity.setId(domain.getId());
         entity.setJoinCode(domain.getJoinCode());
         if (domain.getMembers() != null) {
-            List<MemberJpaEntity> memberEntities = distinctByKey(domain.getMembers(), com.timcritt.tfg.domain.model.Member::getUserId)
-                .stream()
+            List<MemberJpaEntity> memberEntities = domain.getMembers().values().stream()
                 .map(memberMapper)
                 .collect(Collectors.toList());
             memberEntities.forEach(member -> member.setClassroom(entity));

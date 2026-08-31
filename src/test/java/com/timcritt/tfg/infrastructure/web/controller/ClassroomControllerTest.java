@@ -2,7 +2,8 @@ package com.timcritt.tfg.infrastructure.web.controller;
 
 import com.timcritt.tfg.domain.model.Classroom;
 import com.timcritt.tfg.infrastructure.service.ClassroomAuthorizationService;
-import com.timcritt.tfg.infrastructure.service.ClassroomServiceAdapter;
+import com.timcritt.tfg.infrastructure.service.ClassroomDirectoryAdapter;
+import com.timcritt.tfg.infrastructure.service.ClassroomManagementAdapter;
 import com.timcritt.tfg.infrastructure.web.dtoMapper.ClassroomDtoMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,29 +27,31 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ClassroomControllerTest {
 
     private MockMvc mockMvc;
-    private ClassroomServiceAdapter classroomService;
+    private ClassroomManagementAdapter classroomManagementService;
+    private ClassroomDirectoryAdapter classroomDirectoryService;
 
     @BeforeEach
     void setUp() {
-        classroomService = mock(ClassroomServiceAdapter.class);
+        classroomManagementService = mock(ClassroomManagementAdapter.class);
+        classroomDirectoryService = mock(ClassroomDirectoryAdapter.class);
         ClassroomAuthorizationService authorizationService = new ClassroomAuthorizationService(null);
+        ClassroomDtoMapper classroomDtoMapper = new ClassroomDtoMapper();
 
-        when(classroomService.save(any(Classroom.class))).thenAnswer(invocation -> {
+        when(classroomManagementService.save(any(Classroom.class))).thenAnswer(invocation -> {
             Classroom classroom = invocation.getArgument(0);
             classroom.setId(99L);
             return classroom;
         });
 
-        ClassroomController controller = new ClassroomController(
-                classroomService,
-                authorizationService,
-                new ClassroomDtoMapper(),
-                null,
-                null
-        );
-
         LocalValidatorFactoryBean validator = new LocalValidatorFactoryBean();
         validator.afterPropertiesSet();
+
+        ClassroomController controller = new ClassroomController(
+                classroomManagementService,
+                classroomDirectoryService,
+                authorizationService,
+                classroomDtoMapper
+        );
 
         mockMvc = MockMvcBuilders.standaloneSetup(controller)
                 .setValidator(validator)
@@ -73,7 +76,6 @@ class ClassroomControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(content().string(""));
 
-        verify(classroomService).save(any(Classroom.class));
+        verify(classroomManagementService).save(any(Classroom.class));
     }
 }
-

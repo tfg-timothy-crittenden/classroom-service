@@ -23,7 +23,8 @@ import static org.junit.jupiter.api.Assertions.*;
         "spring.datasource.password=",
         "spring.jpa.hibernate.ddl-auto=create-drop",
         "spring.flyway.enabled=false",
-        "spring.cloud.config.enabled=false"
+        "spring.cloud.config.enabled=false",
+        "classroom.grpc.enabled=false"
 })
 @Transactional
 class MemberRepositoryAdapterTest {

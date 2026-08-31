@@ -1,4 +1,4 @@
-package com.timcritt.tfg.application.port.outbound;
+package com.timcritt.tfg.application.port.outbound.repository;
 
 import com.timcritt.tfg.domain.model.ClassroomRole;
 import com.timcritt.tfg.domain.model.Member;

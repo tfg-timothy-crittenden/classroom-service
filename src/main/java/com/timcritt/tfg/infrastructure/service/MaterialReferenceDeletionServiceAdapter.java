@@ -1,21 +1,20 @@
 package com.timcritt.tfg.infrastructure.service;
 
-import com.timcritt.tfg.application.port.outbound.MaterialReferenceCommandPort;
-import com.timcritt.tfg.application.service.MaterialReferenceDeletionService;
+import com.timcritt.tfg.application.port.outbound.repository.MaterialReferenceRepositoryPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class MaterialReferenceDeletionServiceAdapter {
 
-    private final MaterialReferenceDeletionService delegate;
+    private final MaterialReferenceRepositoryPort repository;
 
-    public MaterialReferenceDeletionServiceAdapter(MaterialReferenceCommandPort commandPort) {
-        this.delegate = new MaterialReferenceDeletionService(commandPort);
+    public MaterialReferenceDeletionServiceAdapter(MaterialReferenceRepositoryPort repository) {
+        this.repository = repository;
     }
 
     @Transactional
     public int deleteByMaterialId(Long materialId) {
-        return delegate.deleteByMaterialId(materialId);
+        return repository.deleteByMaterialId(materialId);
     }
 }

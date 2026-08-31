@@ -13,10 +13,6 @@ public final class MaterialReferenceEntityMapper {
         return new MaterialReference(
                 entity.getId(),
                 entity.getMaterialId(),
-                entity.getName(),
-                entity.getDescription(),
-                entity.getPart1Title(),
-                entity.getPart2Title(),
                 entity.getAssignedToRole()
         );
     }
@@ -29,10 +25,6 @@ public final class MaterialReferenceEntityMapper {
         // For updates, we update the existing managed entity instance (see command adapter).
         return new MaterialReferenceJpaEntity(
                 domain.getMaterialId(),
-                domain.getName(),
-                domain.getDescription(),
-                domain.getPart1Title(),
-                domain.getPart2Title(),
                 domain.getAssignedToRole()
         );
     }

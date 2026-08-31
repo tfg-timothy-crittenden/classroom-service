@@ -1,7 +1,7 @@
 package com.timcritt.tfg.infrastructure.kafka;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.timcritt.tfg.infrastructure.service.ClassroomServiceAdapter;
+import com.timcritt.tfg.infrastructure.service.ClassroomManagementAdapter;
 import org.junit.jupiter.api.Test;
 
 import static org.mockito.Mockito.mock;
@@ -12,7 +12,7 @@ import static org.mockito.Mockito.when;
 class UserTeacherRoleRevokedEventListenerTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
-    private final ClassroomServiceAdapter classroomService = mock(ClassroomServiceAdapter.class);
+    private final ClassroomManagementAdapter classroomService = mock(ClassroomManagementAdapter.class);
     private final UserTeacherRoleRevokedEventListener listener = new UserTeacherRoleRevokedEventListener(objectMapper, classroomService);
 
     @Test

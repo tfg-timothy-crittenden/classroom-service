@@ -2,7 +2,7 @@ package com.timcritt.tfg.infrastructure.kafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.timcritt.tfg.infrastructure.service.MaterialTitleUpdateServiceAdapter;
+import com.timcritt.tfg.infrastructure.service.MaterialDetailsUpdateServiceAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
@@ -12,9 +12,9 @@ import org.springframework.stereotype.Component;
 public class MaterialTitleUpdatedEventListener {
 
     private final ObjectMapper objectMapper;
-    private final MaterialTitleUpdateServiceAdapter titleUpdateService;
+    private final MaterialDetailsUpdateServiceAdapter titleUpdateService;
 
-    public MaterialTitleUpdatedEventListener(ObjectMapper objectMapper, MaterialTitleUpdateServiceAdapter titleUpdateService) {
+    public MaterialTitleUpdatedEventListener(ObjectMapper objectMapper, MaterialDetailsUpdateServiceAdapter titleUpdateService) {
         this.objectMapper = objectMapper;
         this.titleUpdateService = titleUpdateService;
     }
@@ -30,24 +30,32 @@ public class MaterialTitleUpdatedEventListener {
                 log.warn("Ignoring material title updated event without materialId: {}", payload);
                 return;
             }
-            if (isBlank(event.materialTitle()) && isBlank(event.part1Title()) && isBlank(event.part2Title())) {
+            if (event.version() == null || event.version() < 0) {
+                log.warn("Ignoring material title updated event with invalid version for materialId={}: {}", event.materialId(), payload);
+                return;
+            }
+            if (isBlank(event.materialTitle()) && isBlank(event.part1Title()) && isBlank(event.part2Title()) && isBlank(event.description())) {
                 log.warn("Ignoring material title updated event without any title fields for materialId={}", event.materialId());
                 return;
             }
 
-            int updated = titleUpdateService.updateTitle(
+            titleUpdateService.updateDetails(
                     event.materialId(),
+                    event.version(),
                     event.materialTitle(),
                     event.part1Title(),
-                    event.part2Title()
+                    event.part2Title(),
+                    event.description()
             );
             log.info(
-                    "Processed material title updated event for materialId={}, updatedAt={}, part1Title={}, part2Title={}, updatedReferences={}",
+                    "Processed material title updated event for materialId={}, version={}, updatedAt={}, part1Title={}, part2Title={}, description={}",
                     event.materialId(),
+                    event.version(),
                     event.updatedAt(),
                     event.part1Title(),
                     event.part2Title(),
-                    updated
+                    event.description()
+
             );
         } catch (JsonProcessingException ex) {
             log.error("Failed to parse material title updated event payload: {}", payload, ex);

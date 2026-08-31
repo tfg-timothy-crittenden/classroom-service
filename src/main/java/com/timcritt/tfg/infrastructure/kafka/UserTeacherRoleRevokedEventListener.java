@@ -2,7 +2,7 @@ package com.timcritt.tfg.infrastructure.kafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.timcritt.tfg.infrastructure.service.ClassroomServiceAdapter;
+import com.timcritt.tfg.infrastructure.service.ClassroomManagementAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
@@ -12,9 +12,9 @@ import org.springframework.stereotype.Component;
 public class UserTeacherRoleRevokedEventListener {
 
     private final ObjectMapper objectMapper;
-    private final ClassroomServiceAdapter classroomService;
+    private final ClassroomManagementAdapter classroomService;
 
-    public UserTeacherRoleRevokedEventListener(ObjectMapper objectMapper, ClassroomServiceAdapter classroomService) {
+    public UserTeacherRoleRevokedEventListener(ObjectMapper objectMapper, ClassroomManagementAdapter classroomService) {
         this.objectMapper = objectMapper;
         this.classroomService = classroomService;
     }

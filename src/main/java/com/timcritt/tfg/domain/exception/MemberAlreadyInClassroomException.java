@@ -1,4 +1,4 @@
-package com.timcritt.tfg.application.exception;
+package com.timcritt.tfg.domain.exception;
 
 public class MemberAlreadyInClassroomException extends RuntimeException {
     private static final long serialVersionUID = 1L;
