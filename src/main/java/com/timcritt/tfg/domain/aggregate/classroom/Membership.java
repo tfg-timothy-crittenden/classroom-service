@@ -1,8 +1,8 @@
-package com.timcritt.tfg.domain.model;
+package com.timcritt.tfg.domain.aggregate.classroom;
 
 import java.time.Instant;
 
-public class Member {
+public class Membership {
 
     private Long id;
     private Long userId;
@@ -16,9 +16,9 @@ public class Member {
     private Instant updatedAt;
 
 
-    public Member() {}
+    public Membership() {}
 
-    public Member(Long id, Long userId, String name, String surname, ClassroomRole role, Instant createdAt, Instant updatedAt) {
+    public Membership(Long id, Long userId, String name, String surname, ClassroomRole role, Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.userId = userId;
         this.name = name;

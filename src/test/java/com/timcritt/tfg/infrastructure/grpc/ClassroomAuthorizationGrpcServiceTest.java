@@ -1,7 +1,7 @@
 package com.timcritt.tfg.infrastructure.grpc;
 
 import com.timcritt.tfg.application.service.MaterialAccessDecision;
-import com.timcritt.tfg.domain.model.ClassroomRole;
+import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
 import com.timcritt.tfg.infrastructure.grpc.protov1.CheckMaterialAccessRequest;
 import com.timcritt.tfg.infrastructure.grpc.protov1.CheckMaterialAccessResponse;
 import com.timcritt.tfg.infrastructure.grpc.protov1.ClassroomAuthorizationServiceGrpc;

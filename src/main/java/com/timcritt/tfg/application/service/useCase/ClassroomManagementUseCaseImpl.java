@@ -6,23 +6,22 @@ import com.timcritt.tfg.application.port.inbound.ClassroomManagementUseCase;
 import com.timcritt.tfg.application.port.outbound.repository.ClassroomRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.JoinCodeGenerator;
 import com.timcritt.tfg.application.port.outbound.repository.MaterialReferenceRepositoryPort;
-import com.timcritt.tfg.application.port.outbound.repository.MemberRepositoryPort;
-import com.timcritt.tfg.domain.model.Classroom;
-import com.timcritt.tfg.domain.model.MaterialReference;
-import com.timcritt.tfg.domain.model.Member;
-import com.timcritt.tfg.domain.model.ClassroomRole;
+import com.timcritt.tfg.application.port.outbound.repository.MembershipRepositoryPort;
+import com.timcritt.tfg.domain.aggregate.classroom.Classroom;
+import com.timcritt.tfg.domain.aggregate.classroom.MaterialReference;
+import com.timcritt.tfg.domain.aggregate.classroom.Membership;
+import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
 
 import java.util.List;
-import java.util.Optional;
 
 public class ClassroomManagementUseCaseImpl implements ClassroomManagementUseCase {
 
     private final ClassroomRepositoryPort classroomRepository;
-    private final MemberRepositoryPort memberRepository;
+    private final MembershipRepositoryPort memberRepository;
     private final JoinCodeGenerator joinCodeGenerator;
     private final MaterialReferenceRepositoryPort materialReferenceRepository;
 
-    public ClassroomManagementUseCaseImpl(ClassroomRepositoryPort repository, MemberRepositoryPort memberRepository, JoinCodeGenerator joinCodeGenerator, MaterialReferenceRepositoryPort materialReferenceRepository) {
+    public ClassroomManagementUseCaseImpl(ClassroomRepositoryPort repository, MembershipRepositoryPort memberRepository, JoinCodeGenerator joinCodeGenerator, MaterialReferenceRepositoryPort materialReferenceRepository) {
         this.classroomRepository = repository;
         this.memberRepository = memberRepository;
         this.joinCodeGenerator = joinCodeGenerator;
@@ -32,7 +31,7 @@ public class ClassroomManagementUseCaseImpl implements ClassroomManagementUseCas
 
     // ***************************** QUERIES *************************************
     @Override
-    public List<Member> getMembersByRole(Long classroomId, ClassroomRole role) {
+    public List<Membership> getMembersByRole(Long classroomId, ClassroomRole role) {
         Classroom classroom = classroomRepository.findById(classroomId);
         if (classroom == null) {
             throw new ClassroomNotFoundException(classroomId);
@@ -89,7 +88,7 @@ public class ClassroomManagementUseCaseImpl implements ClassroomManagementUseCas
     }
 
     @Override
-    public Classroom syncTeachersForClassroom(Long classroomId, List<Member> teachers) {
+    public Classroom syncTeachersForClassroom(Long classroomId, List<Membership> teachers) {
         Classroom classroom = classroomRepository.findById(classroomId);
         if (classroom == null) {
             throw new ClassroomNotFoundException(classroomId);

@@ -1,6 +1,6 @@
 package com.timcritt.tfg.application.port.outbound.repository;
 
-import com.timcritt.tfg.domain.model.MaterialDetails;
+import com.timcritt.tfg.domain.projection.MaterialDetails;
 
 
 public interface MaterialDetailsRepositoryPort {

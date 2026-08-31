@@ -1,15 +1,15 @@
 package com.timcritt.tfg.application.service.useCase;
 
-import com.timcritt.tfg.application.port.inbound.MaterialDetailsAggregateUseCase;
+import com.timcritt.tfg.application.port.inbound.MaterialDetailsProjectionUseCase;
 import com.timcritt.tfg.application.port.outbound.repository.MaterialDetailsRepositoryPort;
-import com.timcritt.tfg.domain.model.MaterialDetails;
+import com.timcritt.tfg.domain.projection.MaterialDetails;
 
 
-public class MaterialDetailsAggregateUseCaseImpl implements MaterialDetailsAggregateUseCase {
+public class MaterialDetailsProjectionUseCaseImpl implements MaterialDetailsProjectionUseCase {
 
     private final MaterialDetailsRepositoryPort materialDetailsRepository;
 
-    public MaterialDetailsAggregateUseCaseImpl(MaterialDetailsRepositoryPort repository) {
+    public MaterialDetailsProjectionUseCaseImpl(MaterialDetailsRepositoryPort repository) {
         this.materialDetailsRepository = repository;
     }
 
@@ -35,6 +35,7 @@ public class MaterialDetailsAggregateUseCaseImpl implements MaterialDetailsAggre
         }
 
         MaterialDetails materialDetails = materialDetailsRepository.findByMaterialId(materialId);
+
         if (materialDetails == null) {
             MaterialDetails newMaterialDetails = MaterialDetails.builder()
                     .materialId(materialId)
@@ -56,6 +57,5 @@ public class MaterialDetailsAggregateUseCaseImpl implements MaterialDetailsAggre
         materialDetails.updateVersion(version);
         materialDetailsRepository.save(materialDetails);
     }
-
 }
 

@@ -4,10 +4,10 @@ import com.timcritt.tfg.application.port.outbound.JoinCodeGenerator;
 import com.timcritt.tfg.application.port.outbound.repository.ClassroomRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.repository.MaterialDetailsRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.repository.MaterialReferenceRepositoryPort;
-import com.timcritt.tfg.application.port.outbound.repository.MemberRepositoryPort;
-import com.timcritt.tfg.domain.model.ClassroomRole;
-import com.timcritt.tfg.domain.model.MaterialDetails;
-import com.timcritt.tfg.domain.model.MaterialReference;
+import com.timcritt.tfg.application.port.outbound.repository.MembershipRepositoryPort;
+import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
+import com.timcritt.tfg.domain.projection.MaterialDetails;
+import com.timcritt.tfg.domain.aggregate.classroom.MaterialReference;
 import com.timcritt.tfg.infrastructure.web.dto.MaterialReferenceWithDetailsDto;
 import org.junit.jupiter.api.Test;
 
@@ -23,7 +23,7 @@ class ClassroomManagementAdapterTest {
     @Test
     void enrichesMaterialsByRoleWithMaterialDetails() {
         ClassroomRepositoryPort classroomRepository = mock(ClassroomRepositoryPort.class);
-        MemberRepositoryPort memberRepository = mock(MemberRepositoryPort.class);
+        MembershipRepositoryPort memberRepository = mock(MembershipRepositoryPort.class);
         JoinCodeGenerator joinCodeGenerator = mock(JoinCodeGenerator.class);
         MemberRoleServiceAdapter memberRoleService = mock(MemberRoleServiceAdapter.class);
         MaterialReferenceRepositoryPort materialReferenceRepository = mock(MaterialReferenceRepositoryPort.class);

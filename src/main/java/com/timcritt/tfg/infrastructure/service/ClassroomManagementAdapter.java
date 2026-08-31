@@ -5,13 +5,13 @@ import com.timcritt.tfg.application.port.outbound.repository.ClassroomRepository
 import com.timcritt.tfg.application.port.outbound.JoinCodeGenerator;
 import com.timcritt.tfg.application.port.outbound.repository.MaterialDetailsRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.repository.MaterialReferenceRepositoryPort;
-import com.timcritt.tfg.application.port.outbound.repository.MemberRepositoryPort;
+import com.timcritt.tfg.application.port.outbound.repository.MembershipRepositoryPort;
 import com.timcritt.tfg.application.service.useCase.ClassroomManagementUseCaseImpl;
-import com.timcritt.tfg.domain.model.Classroom;
-import com.timcritt.tfg.domain.model.ClassroomRole;
-import com.timcritt.tfg.domain.model.MaterialDetails;
-import com.timcritt.tfg.domain.model.MaterialReference;
-import com.timcritt.tfg.domain.model.Member;
+import com.timcritt.tfg.domain.aggregate.classroom.Classroom;
+import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
+import com.timcritt.tfg.domain.aggregate.classroom.Membership;
+import com.timcritt.tfg.domain.projection.MaterialDetails;
+import com.timcritt.tfg.domain.aggregate.classroom.MaterialReference;
 import com.timcritt.tfg.infrastructure.web.dto.MaterialReferenceWithDetailsDto;
 import com.timcritt.tfg.infrastructure.web.dto.TeacherDto;
 import com.timcritt.tfg.infrastructure.web.dto.UpdateClassroomMaterialsRequest;
@@ -19,7 +19,6 @@ import com.timcritt.tfg.infrastructure.web.dtoMapper.MaterialReferenceWithDetail
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,9 +29,10 @@ public class ClassroomManagementAdapter  {
     private final ClassroomManagementUseCaseImpl delegate;
     private final MemberRoleServiceAdapter memberRoleService;
     private final MaterialDetailsRepositoryPort materialDetailsRepository;
+    
 
     public ClassroomManagementAdapter(ClassroomRepositoryPort repository,
-                                      MemberRepositoryPort memberRepository,
+                                      MembershipRepositoryPort memberRepository,
                                       JoinCodeGenerator joinCodeGenerator,
                                       MemberRoleServiceAdapter memberRoleService,
                                       MaterialReferenceRepositoryPort materialReferenceRepository,
@@ -44,11 +44,11 @@ public class ClassroomManagementAdapter  {
 
     // ***************************** QUERIES *************************************
 
-    public List<Member> getTeachersByClassroomId(Long classroomId) {
+    public List<Membership> getTeachersByClassroomId(Long classroomId) {
         return delegate.getMembersByRole(classroomId, ClassroomRole.TEACHER);
     }
 
-    public List<Member> getStudentsByClassroomId(Long classroomId) {
+    public List<Membership> getStudentsByClassroomId(Long classroomId) {
         return delegate.getMembersByRole(classroomId, ClassroomRole.STUDENT);
     }
 
@@ -87,18 +87,18 @@ public class ClassroomManagementAdapter  {
 
     @Transactional
     public Classroom syncTeachersForClassroom(Long classroomId, List<TeacherDto> teachers) {
-        List<Member> teacherMembers = teachers.stream().map(teacherDto -> {
-            Member member = new Member();
-            member.setUserId(teacherDto.getUserId());
-            member.setName(teacherDto.getName());
-            member.setSurname(teacherDto.getSurname());
-            member.setRole(ClassroomRole.TEACHER);
-            member.setCreatedAt(java.time.Instant.now());
-            member.setUpdatedAt(java.time.Instant.now());
-            return member;
+        List<Membership> teacherMemberships = teachers.stream().map(teacherDto -> {
+            Membership membership = new Membership();
+            membership.setUserId(teacherDto.getUserId());
+            membership.setName(teacherDto.getName());
+            membership.setSurname(teacherDto.getSurname());
+            membership.setRole(ClassroomRole.TEACHER);
+            membership.setCreatedAt(java.time.Instant.now());
+            membership.setUpdatedAt(java.time.Instant.now());
+            return membership;
         }).collect(java.util.stream.Collectors.toList());
 
-        return delegate.syncTeachersForClassroom(classroomId, teacherMembers);
+        return delegate.syncTeachersForClassroom(classroomId, teacherMemberships);
     }
 
     @Transactional

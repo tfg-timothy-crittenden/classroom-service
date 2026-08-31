@@ -1,11 +1,11 @@
 package com.timcritt.tfg.infrastructure.persistence;
 
-import com.timcritt.tfg.application.port.outbound.repository.MemberRepositoryPort;
-import com.timcritt.tfg.domain.model.ClassroomRole;
-import com.timcritt.tfg.domain.model.Member;
-import com.timcritt.tfg.infrastructure.persistence.spring.MemberJpaRepository;
+import com.timcritt.tfg.application.port.outbound.repository.MembershipRepositoryPort;
+import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
+import com.timcritt.tfg.domain.aggregate.classroom.Membership;
+import com.timcritt.tfg.infrastructure.persistence.spring.MembershipJpaRepository;
 import com.timcritt.tfg.infrastructure.persistence.spring.ClassroomJpaRepository;
-import com.timcritt.tfg.infrastructure.persistence.jpa.MemberJpaEntity;
+import com.timcritt.tfg.infrastructure.persistence.jpa.MembershipJpaEntity;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -13,12 +13,12 @@ import java.util.Optional;
 import org.springframework.transaction.annotation.Transactional;
 
 @Repository
-public class MemberRepositoryAdapter implements MemberRepositoryPort {
+public class MembershipRepositoryAdapter implements MembershipRepositoryPort {
 
-    private final MemberJpaRepository jpaRepository;
+    private final MembershipJpaRepository jpaRepository;
     private final ClassroomJpaRepository classroomJpaRepository;
 
-    public MemberRepositoryAdapter(MemberJpaRepository jpaRepository, ClassroomJpaRepository classroomJpaRepository) {
+    public MembershipRepositoryAdapter(MembershipJpaRepository jpaRepository, ClassroomJpaRepository classroomJpaRepository) {
         this.jpaRepository = jpaRepository;
         this.classroomJpaRepository = classroomJpaRepository;
     }
@@ -35,8 +35,8 @@ public class MemberRepositoryAdapter implements MemberRepositoryPort {
 
     @Override
     @Transactional
-    public void saveMember(Long classroomId, Member member) {
-        MemberJpaEntity entity = MemberEntityMapper.toEntity(member, classroomJpaRepository.findById(classroomId)
+    public void saveMember(Long classroomId, Membership membership) {
+        MembershipJpaEntity entity = MembershipEntityMapper.toEntity(membership, classroomJpaRepository.findById(classroomId)
             .orElseThrow(() -> new IllegalArgumentException("Classroom not found: " + classroomId)));
         jpaRepository.save(entity);
     }

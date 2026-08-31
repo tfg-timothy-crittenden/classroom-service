@@ -1,17 +1,17 @@
 package com.timcritt.tfg.infrastructure.persistence;
 
-import com.timcritt.tfg.domain.model.Member;
-import com.timcritt.tfg.infrastructure.persistence.jpa.MemberJpaEntity;
+import com.timcritt.tfg.domain.aggregate.classroom.Membership;
+import com.timcritt.tfg.infrastructure.persistence.jpa.MembershipJpaEntity;
 import com.timcritt.tfg.infrastructure.persistence.jpa.ClassroomJpaEntity;
 
-public final class MemberEntityMapper {
-    private MemberEntityMapper() {}
+public final class MembershipEntityMapper {
+    private MembershipEntityMapper() {}
 
-    public static Member toDomain(MemberJpaEntity entity) {
+    public static Membership toDomain(MembershipJpaEntity entity) {
         if (entity == null) {
             return null;
         }
-        return new Member(
+        return new Membership(
                 entity.getId(),
                 entity.getUserId(),
                 entity.getName(),
@@ -23,11 +23,11 @@ public final class MemberEntityMapper {
     }
 
     // Overload toEntity to accept classroom entity
-    public static MemberJpaEntity toEntity(Member domain, ClassroomJpaEntity classroomEntity) {
+    public static MembershipJpaEntity toEntity(Membership domain, ClassroomJpaEntity classroomEntity) {
         if (domain == null) {
             return null;
         }
-        MemberJpaEntity entity = new MemberJpaEntity();
+        MembershipJpaEntity entity = new MembershipJpaEntity();
         entity.setId(domain.getId());
         entity.setUserId(domain.getUserId());
         entity.setName(domain.getName());
@@ -40,7 +40,7 @@ public final class MemberEntityMapper {
     }
 
     // Keep the old method for compatibility
-    public static MemberJpaEntity toEntity(Member domain) {
+    public static MembershipJpaEntity toEntity(Membership domain) {
         return toEntity(domain, null);
     }
 }

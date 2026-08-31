@@ -1,8 +1,8 @@
 package com.timcritt.tfg.infrastructure.persistence.spring;
 
-import com.timcritt.tfg.domain.model.ClassroomRole;
+import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
 import com.timcritt.tfg.infrastructure.persistence.jpa.ClassroomJpaEntity;
-import com.timcritt.tfg.infrastructure.persistence.jpa.MemberJpaEntity;
+import com.timcritt.tfg.infrastructure.persistence.jpa.MembershipJpaEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,18 +24,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         "classroom.grpc.enabled=false"
 })
 @Transactional
-class MemberJpaRepositoryTest {
+class MembershipJpaRepositoryTest {
 
     @Autowired
     private ClassroomJpaRepository classroomJpaRepository;
 
     @Autowired
-    private MemberJpaRepository memberJpaRepository;
+    private MembershipJpaRepository membershipJpaRepository;
 
     @Test
     void deletesOnlyTeacherMembershipsForTheUser() {
         ClassroomJpaEntity teacherClassroom = new ClassroomJpaEntity("Teacher classroom", "Teacher classroom", Instant.now(), Instant.now());
-        MemberJpaEntity teacherMembership = new MemberJpaEntity();
+        MembershipJpaEntity teacherMembership = new MembershipJpaEntity();
         teacherMembership.setUserId(2L);
         teacherMembership.setRole(ClassroomRole.TEACHER);
         teacherMembership.setCreatedAt(Instant.now());
@@ -43,7 +43,7 @@ class MemberJpaRepositoryTest {
         teacherClassroom.addMember(teacherMembership);
 
         ClassroomJpaEntity studentClassroom = new ClassroomJpaEntity("Student classroom", "Student classroom", Instant.now(), Instant.now());
-        MemberJpaEntity studentMembership = new MemberJpaEntity();
+        MembershipJpaEntity studentMembership = new MembershipJpaEntity();
         studentMembership.setUserId(2L);
         studentMembership.setRole(ClassroomRole.STUDENT);
         studentMembership.setCreatedAt(Instant.now());
@@ -54,10 +54,10 @@ class MemberJpaRepositoryTest {
         classroomJpaRepository.save(studentClassroom);
         classroomJpaRepository.flush();
 
-        int deleted = memberJpaRepository.deleteByUserIdAndRole(2L, ClassroomRole.TEACHER);
+        int deleted = membershipJpaRepository.deleteByUserIdAndRole(2L, ClassroomRole.TEACHER);
 
         assertEquals(1, deleted);
-        assertEquals(1L, memberJpaRepository.count());
+        assertEquals(1L, membershipJpaRepository.count());
         assertTrue(classroomJpaRepository.findByIdWithMembersAndMaterials(teacherClassroom.getId())
                 .orElseThrow()
                 .getMembers()

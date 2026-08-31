@@ -1,11 +1,11 @@
 package com.timcritt.tfg.infrastructure.persistence;
 
-import com.timcritt.tfg.domain.model.Classroom;
-import com.timcritt.tfg.domain.model.ClassroomRole;
-import com.timcritt.tfg.domain.model.MaterialReference;
-import com.timcritt.tfg.domain.model.Member;
+import com.timcritt.tfg.domain.aggregate.classroom.Classroom;
+import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
+import com.timcritt.tfg.domain.aggregate.classroom.MaterialReference;
+import com.timcritt.tfg.domain.aggregate.classroom.Membership;
 import com.timcritt.tfg.infrastructure.persistence.jpa.ClassroomJpaEntity;
-import com.timcritt.tfg.infrastructure.persistence.jpa.MemberJpaEntity;
+import com.timcritt.tfg.infrastructure.persistence.jpa.MembershipJpaEntity;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -37,7 +37,7 @@ class ClassroomEntityMapperTest {
         classroom.setUpdatedAt(Instant.now());
         classroom.setMembers(Map.of(
                 TEACHER_USER_ID,
-                new Member(null, TEACHER_USER_ID, TEACHER_NAME, TEACHER_SURNAME, ClassroomRole.TEACHER, Instant.now(), Instant.now())
+                new Membership(null, TEACHER_USER_ID, TEACHER_NAME, TEACHER_SURNAME, ClassroomRole.TEACHER, Instant.now(), Instant.now())
         ));
         classroom.setMaterials(List.of(
                 new MaterialReference(null, MATERIAL_ID, ClassroomRole.TEACHER)
@@ -59,7 +59,7 @@ class ClassroomEntityMapperTest {
         ClassroomJpaEntity entity = new ClassroomJpaEntity("Math", "Math class", now, now);
         entity.setId(7L);
 
-        MemberJpaEntity firstTeacher = new MemberJpaEntity();
+        MembershipJpaEntity firstTeacher = new MembershipJpaEntity();
         firstTeacher.setId(1L);
         firstTeacher.setUserId(TEACHER_USER_ID);
         firstTeacher.setName(TEACHER_NAME);
@@ -68,7 +68,7 @@ class ClassroomEntityMapperTest {
         firstTeacher.setCreatedAt(now);
         firstTeacher.setUpdatedAt(now);
 
-        MemberJpaEntity duplicateTeacher = new MemberJpaEntity();
+        MembershipJpaEntity duplicateTeacher = new MembershipJpaEntity();
         duplicateTeacher.setId(2L);
         duplicateTeacher.setUserId(TEACHER_USER_ID);
         duplicateTeacher.setName(TEACHER_NAME);
@@ -77,7 +77,7 @@ class ClassroomEntityMapperTest {
         duplicateTeacher.setCreatedAt(now);
         duplicateTeacher.setUpdatedAt(now);
 
-        MemberJpaEntity student = new MemberJpaEntity();
+        MembershipJpaEntity student = new MembershipJpaEntity();
         student.setId(3L);
         student.setUserId(STUDENT_USER_ID);
         student.setName(STUDENT_NAME);

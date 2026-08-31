@@ -1,6 +1,6 @@
 package com.timcritt.tfg.infrastructure.persistence.spring;
 
-import com.timcritt.tfg.domain.model.ClassroomRole;
+import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
 import com.timcritt.tfg.infrastructure.persistence.jpa.MaterialReferenceJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

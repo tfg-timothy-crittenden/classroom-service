@@ -17,17 +17,19 @@ public class MaterialDetailsJpaEntity {
 
     @Id
     private Long materialId;
+
     @Column(nullable = false)
     private Long version;
-    @Column @NotNull @NotEmpty
 
+    @Column @NotNull @NotEmpty
     private String name;
-    @Column @NotNull @NotEmpty
 
+    @Column @NotNull @NotEmpty
     private String description;
-    @Column @NotNull @NotEmpty
 
+    @Column @NotNull @NotEmpty
     private String part1Title;
+
     @Column @NotNull @NotEmpty
     private String part2Title;
 

@@ -1,7 +1,7 @@
 package com.timcritt.tfg.infrastructure.persistence;
 
 import com.timcritt.tfg.application.port.outbound.repository.MaterialDetailsRepositoryPort;
-import com.timcritt.tfg.domain.model.MaterialDetails;
+import com.timcritt.tfg.domain.projection.MaterialDetails;
 import com.timcritt.tfg.infrastructure.persistence.jpa.MaterialDetailsJpaEntity;
 import com.timcritt.tfg.infrastructure.persistence.spring.MaterialDetailsJpaRepository;
 import org.springframework.stereotype.Repository;

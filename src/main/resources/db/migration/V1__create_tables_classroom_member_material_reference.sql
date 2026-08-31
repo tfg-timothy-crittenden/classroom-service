@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS classroom (
     updated_at TIMESTAMP NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS member (
+CREATE TABLE IF NOT EXISTS membership (
     id BIGSERIAL PRIMARY KEY,
     classroom_id BIGINT NOT NULL,
     user_id BIGINT NOT NULL,

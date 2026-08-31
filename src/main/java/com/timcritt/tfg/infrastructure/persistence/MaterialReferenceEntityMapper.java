@@ -1,6 +1,6 @@
 package com.timcritt.tfg.infrastructure.persistence;
 
-import com.timcritt.tfg.domain.model.MaterialReference;
+import com.timcritt.tfg.domain.aggregate.classroom.MaterialReference;
 import com.timcritt.tfg.infrastructure.persistence.jpa.MaterialReferenceJpaEntity;
 
 public final class MaterialReferenceEntityMapper {

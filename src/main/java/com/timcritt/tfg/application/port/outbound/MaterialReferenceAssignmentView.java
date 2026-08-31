@@ -1,6 +1,6 @@
 package com.timcritt.tfg.application.port.outbound;
 
-import com.timcritt.tfg.domain.model.ClassroomRole;
+import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
 
 public record MaterialReferenceAssignmentView(
         Long classroomId,

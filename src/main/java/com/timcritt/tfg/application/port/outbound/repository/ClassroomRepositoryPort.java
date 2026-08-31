@@ -1,6 +1,6 @@
 package com.timcritt.tfg.application.port.outbound.repository;
 
-import com.timcritt.tfg.domain.model.Classroom;
+import com.timcritt.tfg.domain.aggregate.classroom.Classroom;
 
 import java.util.List;
 

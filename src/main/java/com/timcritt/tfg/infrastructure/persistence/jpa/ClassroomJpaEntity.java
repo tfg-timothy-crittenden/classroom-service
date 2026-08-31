@@ -33,7 +33,7 @@ public class ClassroomJpaEntity {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
-    private List<MemberJpaEntity> members = new ArrayList<>();
+    private List<MembershipJpaEntity> members = new ArrayList<>();
 
     @OneToMany(
             mappedBy = "classroom",
@@ -54,11 +54,11 @@ public class ClassroomJpaEntity {
     }
 
 
-    public void addMember(MemberJpaEntity member) {
+    public void addMember(MembershipJpaEntity member) {
         members.add(member);
         member.setClassroom(this);
     }
-    public void removeMember(MemberJpaEntity member) {
+    public void removeMember(MembershipJpaEntity member) {
         members.remove(member);
         member.setClassroom(null);
     }

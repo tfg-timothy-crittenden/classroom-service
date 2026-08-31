@@ -1,13 +1,12 @@
 package com.timcritt.tfg.application.port.inbound;
 
 import com.timcritt.tfg.application.command.UpdateClassroomMaterialsCommand;
-import com.timcritt.tfg.domain.model.Classroom;
-import com.timcritt.tfg.domain.model.ClassroomRole;
-import com.timcritt.tfg.domain.model.MaterialReference;
-import com.timcritt.tfg.domain.model.Member;
+import com.timcritt.tfg.domain.aggregate.classroom.Classroom;
+import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
+import com.timcritt.tfg.domain.aggregate.classroom.MaterialReference;
+import com.timcritt.tfg.domain.aggregate.classroom.Membership;
 
 import java.util.List;
-import java.util.Optional;
 
 public interface ClassroomManagementUseCase {
 
@@ -21,9 +20,9 @@ public interface ClassroomManagementUseCase {
 
     List<MaterialReference> getClassroomMaterialsByRole(Long classroomId, ClassroomRole role);
 
-    List<Member> getMembersByRole(Long classroomId, ClassroomRole role);
+    List<Membership> getMembersByRole(Long classroomId, ClassroomRole role);
 
-    Classroom syncTeachersForClassroom(Long classroomId, List<Member> teachers);
+    Classroom syncTeachersForClassroom(Long classroomId, List<Membership> teachers);
 
 
     // ************************************** COMMANDS ***************************************

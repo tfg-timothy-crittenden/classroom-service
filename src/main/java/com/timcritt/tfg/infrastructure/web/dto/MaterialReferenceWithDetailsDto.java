@@ -1,6 +1,6 @@
 package com.timcritt.tfg.infrastructure.web.dto;
 
-import com.timcritt.tfg.domain.model.ClassroomRole;
+import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
 import lombok.Data;
 
 @Data

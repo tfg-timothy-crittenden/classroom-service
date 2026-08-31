@@ -1,18 +1,14 @@
 package com.timcritt.tfg.infrastructure.web.dto;
 
-import com.timcritt.tfg.domain.model.ClassroomRole;
+import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class MemberDto {
+public class MembershipDto {
     @NotNull
     private Long userId;
     @NotNull
     private ClassroomRole role;
-    @NotBlank
-    private String name;
-    @NotBlank
-    private String surname;
 }

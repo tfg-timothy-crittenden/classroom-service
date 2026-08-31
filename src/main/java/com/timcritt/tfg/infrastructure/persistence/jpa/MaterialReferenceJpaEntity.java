@@ -1,6 +1,6 @@
 package com.timcritt.tfg.infrastructure.persistence.jpa;
 
-import com.timcritt.tfg.domain.model.ClassroomRole;
+import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

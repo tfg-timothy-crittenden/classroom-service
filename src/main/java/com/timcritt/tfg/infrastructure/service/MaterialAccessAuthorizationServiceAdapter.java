@@ -1,7 +1,7 @@
 package com.timcritt.tfg.infrastructure.service;
 
 import com.timcritt.tfg.application.port.outbound.repository.MaterialReferenceRepositoryPort;
-import com.timcritt.tfg.application.port.outbound.repository.MemberRepositoryPort;
+import com.timcritt.tfg.application.port.outbound.repository.MembershipRepositoryPort;
 import com.timcritt.tfg.application.service.MaterialAccessAuthorizationService;
 import com.timcritt.tfg.application.service.MaterialAccessDecision;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,7 @@ public class MaterialAccessAuthorizationServiceAdapter {
 
     public MaterialAccessAuthorizationServiceAdapter(
             MaterialReferenceRepositoryPort materialReferenceRepository,
-            MemberRepositoryPort memberRepository
+            MembershipRepositoryPort memberRepository
     ) {
         this.delegate = new MaterialAccessAuthorizationService(materialReferenceRepository, memberRepository);
     }

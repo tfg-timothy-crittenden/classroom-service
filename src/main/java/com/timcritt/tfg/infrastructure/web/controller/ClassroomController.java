@@ -1,7 +1,7 @@
 package com.timcritt.tfg.infrastructure.web.controller;
 
-import com.timcritt.tfg.domain.model.Classroom;
-import com.timcritt.tfg.domain.model.ClassroomRole;
+import com.timcritt.tfg.domain.aggregate.classroom.Classroom;
+import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
 import com.timcritt.tfg.infrastructure.service.ClassroomDirectoryAdapter;
 import com.timcritt.tfg.infrastructure.service.ClassroomManagementAdapter;
 import com.timcritt.tfg.infrastructure.service.ClassroomAuthorizationService;
@@ -9,7 +9,7 @@ import com.timcritt.tfg.infrastructure.service.ClassroomAuthorizationService;
 import com.timcritt.tfg.infrastructure.web.dto.*;
 import com.timcritt.tfg.infrastructure.web.dtoMapper.ClassroomDtoMapper;
 import com.timcritt.tfg.infrastructure.web.dtoMapper.MaterialReferenceDtoMapper;
-import com.timcritt.tfg.infrastructure.web.dtoMapper.MemberDtoMapper;
+import com.timcritt.tfg.infrastructure.web.dtoMapper.MembershipDtoMapper;
 import com.timcritt.tfg.infrastructure.web.dtoMapper.RoleCheckDtoMapper;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -47,19 +47,19 @@ public class ClassroomController {
 
     //Only accessible to members of the classroom and to admin
     @GetMapping("/{classroomId}/members/teachers")
-    public List<MemberDto> getTeachersByClassroom(Authentication authentication, @PathVariable Long classroomId) {
+    public List<MembershipDto> getTeachersByClassroom(Authentication authentication, @PathVariable Long classroomId) {
         classroomAuthorizationService.ensureCanReadTeachers(authentication, classroomId);
         return classroomManagementAdapter.getTeachersByClassroomId(classroomId).stream()
-                .map(MemberDtoMapper::toDto)
+                .map(MembershipDtoMapper::toDto)
                 .collect(Collectors.toList());
     }
 
     //Only accessible to teachers assigned to this classroom and to admin
     @GetMapping("/{classroomId}/members/students")
-    public List<MemberDto> getStudentsByClassroom(Authentication authentication, @PathVariable Long classroomId) {
+    public List<MembershipDto> getStudentsByClassroom(Authentication authentication, @PathVariable Long classroomId) {
         classroomAuthorizationService.ensureCanReadStudents(authentication, classroomId);
         return classroomManagementAdapter.getStudentsByClassroomId(classroomId).stream()
-                .map(MemberDtoMapper::toDto)
+                .map(MembershipDtoMapper::toDto)
                 .collect(Collectors.toList());
     }
 

@@ -1,11 +1,11 @@
 package com.timcritt.tfg.infrastructure.persistence;
 
-import com.timcritt.tfg.domain.model.ClassroomRole;
-import com.timcritt.tfg.domain.model.Member;
+import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
+import com.timcritt.tfg.domain.aggregate.classroom.Membership;
 import com.timcritt.tfg.infrastructure.persistence.jpa.ClassroomJpaEntity;
-import com.timcritt.tfg.infrastructure.persistence.jpa.MemberJpaEntity;
+import com.timcritt.tfg.infrastructure.persistence.jpa.MembershipJpaEntity;
 import com.timcritt.tfg.infrastructure.persistence.spring.ClassroomJpaRepository;
-import com.timcritt.tfg.infrastructure.persistence.spring.MemberJpaRepository;
+import com.timcritt.tfg.infrastructure.persistence.spring.MembershipJpaRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,25 +27,25 @@ import static org.junit.jupiter.api.Assertions.*;
         "classroom.grpc.enabled=false"
 })
 @Transactional
-class MemberRepositoryAdapterTest {
+class MembershipRepositoryAdapterTest {
 
     @Autowired
-    private MemberRepositoryAdapter memberRepositoryAdapter;
+    private MembershipRepositoryAdapter memberRepositoryAdapter;
     @Autowired
     private ClassroomJpaRepository classroomJpaRepository;
     @Autowired
-    private MemberJpaRepository memberJpaRepository;
+    private MembershipJpaRepository membershipJpaRepository;
 
     @Test
     void saveMember_persistsMemberAndAssociatesWithClassroom() {
         final ClassroomJpaEntity classroom = classroomJpaRepository.saveAndFlush(
                 new ClassroomJpaEntity("TestClass", "desc", Instant.now(), Instant.now()));
 
-        final Member member = new Member(null, 42L, "John", "Doe", ClassroomRole.STUDENT, Instant.now(), Instant.now());
-        memberRepositoryAdapter.saveMember(classroom.getId(), member);
+        final Membership membership = new Membership(null, 42L, "John", "Doe", ClassroomRole.STUDENT, Instant.now(), Instant.now());
+        memberRepositoryAdapter.saveMember(classroom.getId(), membership);
 
-        // Verify member is persisted and associated
-        final Optional<MemberJpaEntity> persisted = memberJpaRepository.findAll().stream()
+        // Verify membership is persisted and associated
+        final Optional<MembershipJpaEntity> persisted = membershipJpaRepository.findAll().stream()
                 .filter(m -> m.getUserId().equals(42L) && m.getClassroom().getId().equals(classroom.getId()))
                 .findFirst();
         assertTrue(persisted.isPresent());
@@ -59,10 +59,10 @@ class MemberRepositoryAdapterTest {
         final ClassroomJpaEntity classroom = classroomJpaRepository.saveAndFlush(
                 new ClassroomJpaEntity("TestClass2", "desc", Instant.now(), Instant.now()));
 
-        final Member member = new Member(null, 99L, "Alice", "Smith", ClassroomRole.STUDENT, Instant.now(), Instant.now());
-        memberRepositoryAdapter.saveMember(classroom.getId(), member);
+        final Membership membership = new Membership(null, 99L, "Alice", "Smith", ClassroomRole.STUDENT, Instant.now(), Instant.now());
+        memberRepositoryAdapter.saveMember(classroom.getId(), membership);
         // Try saving again (should throw due to unique constraint)
-        assertThrows(Exception.class, () -> memberRepositoryAdapter.saveMember(classroom.getId(), member));
+        assertThrows(Exception.class, () -> memberRepositoryAdapter.saveMember(classroom.getId(), membership));
     }
 }
 

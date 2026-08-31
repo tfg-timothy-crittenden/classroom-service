@@ -4,14 +4,14 @@ import com.timcritt.tfg.application.exception.ClassroomNotFoundException;
 import com.timcritt.tfg.application.port.outbound.*;
 import com.timcritt.tfg.application.port.outbound.repository.ClassroomRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.repository.MaterialReferenceRepositoryPort;
-import com.timcritt.tfg.application.port.outbound.repository.MemberRepositoryPort;
+import com.timcritt.tfg.application.port.outbound.repository.MembershipRepositoryPort;
 import com.timcritt.tfg.domain.exception.MemberAlreadyInClassroomException;
 import com.timcritt.tfg.domain.exception.TeacherAlreadyAssignedException;
 import com.timcritt.tfg.application.service.useCase.ClassroomManagementUseCaseImpl;
-import com.timcritt.tfg.domain.model.Classroom;
-import com.timcritt.tfg.domain.model.ClassroomRole;
-import com.timcritt.tfg.domain.model.MaterialReference;
-import com.timcritt.tfg.domain.model.Member;
+import com.timcritt.tfg.domain.aggregate.classroom.Classroom;
+import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
+import com.timcritt.tfg.domain.aggregate.classroom.MaterialReference;
+import com.timcritt.tfg.domain.aggregate.classroom.Membership;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -30,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class ClassroomUseCaseImplTest {
 
     private final Map<Long, Classroom> classrooms = new ConcurrentHashMap<>();
-    private final InMemoryMemberRepository memberRepository = new InMemoryMemberRepository();
+    private final InMemoryMembershipRepository memberRepository = new InMemoryMembershipRepository();
     private final InMemoryMaterialReferenceRepository materialReferenceRepository = new InMemoryMaterialReferenceRepository() {
         @Override
         public List<MaterialReference> findByMaterialId(Long id) {
@@ -148,7 +148,7 @@ class ClassroomUseCaseImplTest {
                 MemberAlreadyInClassroomException.class,
                 () -> useCase.syncTeachersForClassroom(
                         7L,
-                        List.of(new Member(null, 42L, "John", "Smith", ClassroomRole.TEACHER, Instant.now(), Instant.now()))
+                        List.of(new Membership(null, 42L, "John", "Smith", ClassroomRole.TEACHER, Instant.now(), Instant.now()))
                 )
         );
 
@@ -162,7 +162,7 @@ class ClassroomUseCaseImplTest {
         Classroom classroom = new Classroom(7L, "Math", "Math class");
         classrooms.put(classroom.getId(), classroom);
 
-        Member newTeacher = new Member(null, 99L, "Alice", "Brown", ClassroomRole.TEACHER, Instant.now(), Instant.now());
+        Membership newTeacher = new Membership(null, 99L, "Alice", "Brown", ClassroomRole.TEACHER, Instant.now(), Instant.now());
         Classroom updated = useCase.assignTeacherToClassroom(7L, 99L, "Alice", "Brown");
 
         assertTrue(updated.getMembers().containsKey(99L));
@@ -236,7 +236,7 @@ class ClassroomUseCaseImplTest {
         Classroom classroom = new Classroom(7L, "Math", "Math class");
         classrooms.put(classroom.getId(), classroom);
 
-        Member newTeacher = new Member(null, 77L, "New", "Teacher", ClassroomRole.TEACHER, Instant.now(), Instant.now());
+        Membership newTeacher = new Membership(null, 77L, "New", "Teacher", ClassroomRole.TEACHER, Instant.now(), Instant.now());
         useCase.syncTeachersForClassroom(7L, List.of(newTeacher));
 
         Classroom updated = classrooms.get(7L);
@@ -248,11 +248,11 @@ class ClassroomUseCaseImplTest {
         Classroom classroom = classroomWithTeacher(); // teacher userId=42, name Jane Doe
         classrooms.put(classroom.getId(), classroom);
 
-        Member updatedTeacher = new Member(null, 42L, "Janet", "Doeson", ClassroomRole.TEACHER, Instant.now(), Instant.now());
+        Membership updatedTeacher = new Membership(null, 42L, "Janet", "Doeson", ClassroomRole.TEACHER, Instant.now(), Instant.now());
         useCase.syncTeachersForClassroom(7L, List.of(updatedTeacher));
 
         Classroom updated = classrooms.get(7L);
-        Member teacher = updated.getMembers().get(42L);
+        Membership teacher = updated.getMembers().get(42L);
         assertNotNull(teacher);
         assertEquals("Jane", teacher.getName());
         assertEquals("Doe", teacher.getSurname());
@@ -288,8 +288,8 @@ class ClassroomUseCaseImplTest {
         Classroom classroom = classroomWithMembers(); // 1 teacher (43), 1 student (42)
         classrooms.put(classroom.getId(), classroom);
 
-        List<Member> students = useCase.getMembersByRole(7L, ClassroomRole.STUDENT);
-        List<Member> teachers = useCase.getMembersByRole(7L, ClassroomRole.TEACHER);
+        List<Membership> students = useCase.getMembersByRole(7L, ClassroomRole.STUDENT);
+        List<Membership> teachers = useCase.getMembersByRole(7L, ClassroomRole.TEACHER);
 
         assertEquals(1, students.size());
         assertEquals(42L, students.getFirst().getUserId());
@@ -315,8 +315,8 @@ class ClassroomUseCaseImplTest {
         classroom.setCreatedAt(Instant.now());
         classroom.setUpdatedAt(Instant.now());
 
-        Member teacher = new Member(null, 43L, "Jane", "Doe", ClassroomRole.TEACHER, Instant.now(), Instant.now());
-        Member student = new Member(null, 42L, "John", "Smith", ClassroomRole.STUDENT, Instant.now(), Instant.now());
+        Membership teacher = new Membership(null, 43L, "Jane", "Doe", ClassroomRole.TEACHER, Instant.now(), Instant.now());
+        Membership student = new Membership(null, 42L, "John", "Smith", ClassroomRole.STUDENT, Instant.now(), Instant.now());
         classroom.addMember(teacher);
         classroom.addMember(student);
         return classroom;
@@ -328,7 +328,7 @@ class ClassroomUseCaseImplTest {
         classroom.setCreatedAt(Instant.now());
         classroom.setUpdatedAt(Instant.now());
 
-        Member teacher = new Member(null, 42L, "Jane", "Doe", ClassroomRole.TEACHER, Instant.now(), Instant.now());
+        Membership teacher = new Membership(null, 42L, "Jane", "Doe", ClassroomRole.TEACHER, Instant.now(), Instant.now());
         classroom.addMember(teacher);
         return classroom;
     }
@@ -339,12 +339,12 @@ class ClassroomUseCaseImplTest {
         classroom.setCreatedAt(Instant.now());
         classroom.setUpdatedAt(Instant.now());
 
-        Member student = new Member(null, 42L, "John", "Smith", ClassroomRole.STUDENT, Instant.now(), Instant.now());
+        Membership student = new Membership(null, 42L, "John", "Smith", ClassroomRole.STUDENT, Instant.now(), Instant.now());
         classroom.addMember(student);
         return classroom;
     }
 
-    private static class InMemoryMemberRepository implements MemberRepositoryPort {
+    private static class InMemoryMembershipRepository implements MembershipRepositoryPort {
         private final Map<Key, ClassroomRole> memberships = new HashMap<>();
 
         void addMembership(Long classroomId, Long userId, ClassroomRole role) {
@@ -375,8 +375,8 @@ class ClassroomUseCaseImplTest {
         }
 
         @Override
-        public void saveMember(Long classroomId, Member member) {
-            memberships.put(new Key(classroomId, member.getUserId()), member.getRole());
+        public void saveMember(Long classroomId, Membership membership) {
+            memberships.put(new Key(classroomId, membership.getUserId()), membership.getRole());
         }
 
         private record Key(Long classroomId, Long userId) { }

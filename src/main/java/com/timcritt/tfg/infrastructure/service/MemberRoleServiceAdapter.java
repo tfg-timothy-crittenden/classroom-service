@@ -1,8 +1,8 @@
 package com.timcritt.tfg.infrastructure.service;
 
-import com.timcritt.tfg.application.port.outbound.repository.MemberRepositoryPort;
+import com.timcritt.tfg.application.port.outbound.repository.MembershipRepositoryPort;
 import com.timcritt.tfg.application.service.useCase.MaterialAccessAuthorizationUseCaseImpl;
-import com.timcritt.tfg.domain.model.ClassroomRole;
+import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,8 +13,8 @@ public class MemberRoleServiceAdapter {
 
     private final MaterialAccessAuthorizationUseCaseImpl delegate;
 
-    public MemberRoleServiceAdapter(MemberRepositoryPort memberRepositoryPort) {
-        this.delegate = new MaterialAccessAuthorizationUseCaseImpl(memberRepositoryPort);
+    public MemberRoleServiceAdapter(MembershipRepositoryPort membershipRepositoryPort) {
+        this.delegate = new MaterialAccessAuthorizationUseCaseImpl(membershipRepositoryPort);
     }
 
     @Transactional(readOnly = true)

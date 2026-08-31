@@ -1,5 +1,6 @@
-package com.timcritt.tfg.domain.model;
+package com.timcritt.tfg.domain.aggregate;
 
+import com.timcritt.tfg.domain.projection.MaterialDetails;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

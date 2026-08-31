@@ -1,6 +1,6 @@
 package com.timcritt.tfg.infrastructure.web.controller;
 
-import com.timcritt.tfg.domain.model.Classroom;
+import com.timcritt.tfg.domain.aggregate.classroom.Classroom;
 import com.timcritt.tfg.infrastructure.service.ClassroomAuthorizationService;
 import com.timcritt.tfg.infrastructure.service.ClassroomDirectoryAdapter;
 import com.timcritt.tfg.infrastructure.service.ClassroomManagementAdapter;

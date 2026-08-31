@@ -1,4 +1,4 @@
-package com.timcritt.tfg.domain.model;
+package com.timcritt.tfg.domain.aggregate.classroom;
 
 public class MaterialReference {
 

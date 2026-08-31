@@ -1,4 +1,4 @@
-package com.timcritt.tfg.domain.model;
+package com.timcritt.tfg.domain.projection;
 
 public class MaterialDetails {
 

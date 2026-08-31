@@ -1,16 +1,16 @@
 package com.timcritt.tfg.application.service.useCase;
 
 import com.timcritt.tfg.application.port.inbound.MaterialAccessAuthorizationUseCase;
-import com.timcritt.tfg.application.port.outbound.repository.MemberRepositoryPort;
-import com.timcritt.tfg.domain.model.ClassroomRole;
+import com.timcritt.tfg.application.port.outbound.repository.MembershipRepositoryPort;
+import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
 
 import java.util.Optional;
 
 public class MaterialAccessAuthorizationUseCaseImpl implements MaterialAccessAuthorizationUseCase {
 
-    private final MemberRepositoryPort memberRepository;
+    private final MembershipRepositoryPort memberRepository;
 
-    public MaterialAccessAuthorizationUseCaseImpl(MemberRepositoryPort memberRepository) {
+    public MaterialAccessAuthorizationUseCaseImpl(MembershipRepositoryPort memberRepository) {
         this.memberRepository = memberRepository;
     }
 

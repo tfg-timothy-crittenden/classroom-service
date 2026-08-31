@@ -4,9 +4,10 @@ import com.timcritt.tfg.application.service.MaterialAccessAuthorizationService;
 import com.timcritt.tfg.application.service.MaterialAccessDecision;
 import com.timcritt.tfg.application.port.outbound.MaterialReferenceAssignmentView;
 import com.timcritt.tfg.application.port.outbound.repository.MaterialReferenceRepositoryPort;
-import com.timcritt.tfg.application.port.outbound.repository.MemberRepositoryPort;
-import com.timcritt.tfg.domain.model.ClassroomRole;
-import com.timcritt.tfg.domain.model.MaterialReference;
+import com.timcritt.tfg.application.port.outbound.repository.MembershipRepositoryPort;
+import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
+import com.timcritt.tfg.domain.aggregate.classroom.MaterialReference;
+import com.timcritt.tfg.domain.aggregate.classroom.Membership;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -27,7 +28,7 @@ class MaterialAccessAuthorizationServiceTest {
                 new InMemoryMaterialReferenceRepository(List.of(
                         new MaterialReferenceAssignmentView(10L, 99L, ClassroomRole.STUDENT)
                 )),
-                new InMemoryMemberRepository(Map.of(
+                new InMemoryMembershipRepository(Map.of(
                         new Key(10L, 42L), ClassroomRole.STUDENT
                 ))
         );
@@ -43,7 +44,7 @@ class MaterialAccessAuthorizationServiceTest {
     void returnsNoAssignmentWhenMaterialIsUnknown() {
         MaterialAccessAuthorizationService service = new MaterialAccessAuthorizationService(
                 new InMemoryMaterialReferenceRepository(List.of()),
-                new InMemoryMemberRepository(Map.of())
+                new InMemoryMembershipRepository(Map.of())
         );
 
         MaterialAccessDecision decision = service.checkReadAccess("42", 99L, "READ");
@@ -59,7 +60,7 @@ class MaterialAccessAuthorizationServiceTest {
                 new InMemoryMaterialReferenceRepository(List.of(
                         new MaterialReferenceAssignmentView(10L, 99L, ClassroomRole.STUDENT)
                 )),
-                new InMemoryMemberRepository(Map.of())
+                new InMemoryMembershipRepository(Map.of())
         );
 
         MaterialAccessDecision decision = service.checkReadAccess("42", 99L, "READ");
@@ -75,7 +76,7 @@ class MaterialAccessAuthorizationServiceTest {
                 new InMemoryMaterialReferenceRepository(List.of(
                         new MaterialReferenceAssignmentView(10L, 99L, ClassroomRole.TEACHER)
                 )),
-                new InMemoryMemberRepository(Map.of(
+                new InMemoryMembershipRepository(Map.of(
                         new Key(10L, 42L), ClassroomRole.STUDENT
                 ))
         );
@@ -93,7 +94,7 @@ class MaterialAccessAuthorizationServiceTest {
                 new InMemoryMaterialReferenceRepository(List.of(
                         new MaterialReferenceAssignmentView(10L, 99L, ClassroomRole.STUDENT)
                 )),
-                new InMemoryMemberRepository(Map.of(
+                new InMemoryMembershipRepository(Map.of(
                         new Key(10L, 42L), ClassroomRole.STUDENT
                 ))
         );
@@ -111,7 +112,7 @@ class MaterialAccessAuthorizationServiceTest {
                 new InMemoryMaterialReferenceRepository(List.of(
                         new MaterialReferenceAssignmentView(10L, 99L, null)
                 )),
-                new InMemoryMemberRepository(Map.of(
+                new InMemoryMembershipRepository(Map.of(
                         new Key(10L, 42L), ClassroomRole.TEACHER
                 ))
         );
@@ -134,12 +135,12 @@ class MaterialAccessAuthorizationServiceTest {
         }
 
         @Override
-        public List<com.timcritt.tfg.domain.model.MaterialReference> findByClassroomId(Long classroomId) {
+        public List<MaterialReference> findByClassroomId(Long classroomId) {
             return List.of();
         }
 
         @Override
-        public List<com.timcritt.tfg.domain.model.MaterialReference> findByClassroomIdAndAssignedToRole(Long classroomId, ClassroomRole role) {
+        public List<MaterialReference> findByClassroomIdAndAssignedToRole(Long classroomId, ClassroomRole role) {
             return List.of();
         }
 
@@ -168,10 +169,10 @@ class MaterialAccessAuthorizationServiceTest {
         }
     }
 
-    private static class InMemoryMemberRepository implements MemberRepositoryPort {
+    private static class InMemoryMembershipRepository implements MembershipRepositoryPort {
         private final Map<Key, ClassroomRole> rolesByMembership;
 
-        private InMemoryMemberRepository(Map<Key, ClassroomRole> rolesByMembership) {
+        private InMemoryMembershipRepository(Map<Key, ClassroomRole> rolesByMembership) {
             this.rolesByMembership = new HashMap<>(rolesByMembership);
         }
 
@@ -186,8 +187,8 @@ class MaterialAccessAuthorizationServiceTest {
         }
 
         @Override
-        public void saveMember(Long classroomId, com.timcritt.tfg.domain.model.Member member) {
-            rolesByMembership.put(new Key(classroomId, member.getUserId()), member.getRole());
+        public void saveMember(Long classroomId, Membership membership) {
+            rolesByMembership.put(new Key(classroomId, membership.getUserId()), membership.getRole());
         }
     }
 }

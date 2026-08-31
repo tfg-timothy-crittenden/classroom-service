@@ -2,8 +2,8 @@ package com.timcritt.tfg.application.service;
 
 import com.timcritt.tfg.application.port.outbound.MaterialReferenceAssignmentView;
 import com.timcritt.tfg.application.port.outbound.repository.MaterialReferenceRepositoryPort;
-import com.timcritt.tfg.application.port.outbound.repository.MemberRepositoryPort;
-import com.timcritt.tfg.domain.model.ClassroomRole;
+import com.timcritt.tfg.application.port.outbound.repository.MembershipRepositoryPort;
+import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
 
 import java.util.List;
 
@@ -18,7 +18,7 @@ import java.util.List;
 public class MaterialAccessAuthorizationService {
 
     private final MaterialReferenceRepositoryPort materialReferenceRepository;
-    private final MemberRepositoryPort memberRepository;
+    private final MembershipRepositoryPort memberRepository;
 
     /**
      * Constructs the service with the required repository ports.
@@ -28,7 +28,7 @@ public class MaterialAccessAuthorizationService {
      */
     public MaterialAccessAuthorizationService(
             MaterialReferenceRepositoryPort materialReferenceRepository,
-            MemberRepositoryPort memberRepository
+            MembershipRepositoryPort memberRepository
     ) {
         this.materialReferenceRepository = materialReferenceRepository;
         this.memberRepository = memberRepository;

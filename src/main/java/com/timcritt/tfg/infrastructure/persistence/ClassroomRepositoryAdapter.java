@@ -1,7 +1,7 @@
 package com.timcritt.tfg.infrastructure.persistence;
 
 import com.timcritt.tfg.application.port.outbound.repository.ClassroomRepositoryPort;
-import com.timcritt.tfg.domain.model.Classroom;
+import com.timcritt.tfg.domain.aggregate.classroom.Classroom;
 import com.timcritt.tfg.infrastructure.persistence.jpa.ClassroomJpaEntity;
 import com.timcritt.tfg.infrastructure.persistence.spring.ClassroomJpaRepository;
 import org.springframework.stereotype.Repository;

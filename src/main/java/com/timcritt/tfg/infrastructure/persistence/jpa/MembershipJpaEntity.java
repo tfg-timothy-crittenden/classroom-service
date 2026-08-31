@@ -1,6 +1,6 @@
 package com.timcritt.tfg.infrastructure.persistence.jpa;
 
-import com.timcritt.tfg.domain.model.ClassroomRole;
+import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,7 +8,7 @@ import lombok.Setter;
 import java.time.Instant;
 
 @Entity @Table(
-        name = "member",
+        name = "membership",
         uniqueConstraints = {
                 @UniqueConstraint(
                         name = "uk_member_classroom_user",
@@ -18,7 +18,7 @@ import java.time.Instant;
 )
 @Getter
 @Setter
-public class MemberJpaEntity {
+public class MembershipJpaEntity {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

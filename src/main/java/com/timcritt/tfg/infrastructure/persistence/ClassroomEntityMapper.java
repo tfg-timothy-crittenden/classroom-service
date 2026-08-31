@@ -1,8 +1,10 @@
 package com.timcritt.tfg.infrastructure.persistence;
 
-import com.timcritt.tfg.domain.model.Classroom;
+import com.timcritt.tfg.domain.aggregate.classroom.Classroom;
+import com.timcritt.tfg.domain.aggregate.classroom.Membership;
+import com.timcritt.tfg.domain.aggregate.classroom.MaterialReference;
 import com.timcritt.tfg.infrastructure.persistence.jpa.ClassroomJpaEntity;
-import com.timcritt.tfg.infrastructure.persistence.jpa.MemberJpaEntity;
+import com.timcritt.tfg.infrastructure.persistence.jpa.MembershipJpaEntity;
 import com.timcritt.tfg.infrastructure.persistence.jpa.MaterialReferenceJpaEntity;
 
 import java.util.ArrayList;
@@ -18,13 +20,13 @@ public final class ClassroomEntityMapper {
     private ClassroomEntityMapper() {}
 
     public static Classroom toDomain(ClassroomJpaEntity entity) {
-        return toDomain(entity, MemberEntityMapper::toDomain, MaterialReferenceEntityMapper::toDomain);
+        return toDomain(entity, MembershipEntityMapper::toDomain, MaterialReferenceEntityMapper::toDomain);
     }
 
     public static Classroom toDomain(
             ClassroomJpaEntity entity,
-            java.util.function.Function<MemberJpaEntity, com.timcritt.tfg.domain.model.Member> memberMapper,
-            java.util.function.Function<MaterialReferenceJpaEntity, com.timcritt.tfg.domain.model.MaterialReference> materialMapper
+            java.util.function.Function<MembershipJpaEntity, Membership> memberMapper,
+            java.util.function.Function<MaterialReferenceJpaEntity, MaterialReference> materialMapper
     ) {
         if (entity == null) {
             return null;
@@ -40,11 +42,11 @@ public final class ClassroomEntityMapper {
 
 
         if (entity.getMembers() != null) {
-            Map<Long, com.timcritt.tfg.domain.model.Member> membersMap = distinctByKey(entity.getMembers(), MemberJpaEntity::getUserId)
+            Map<Long, Membership> membersMap = distinctByKey(entity.getMembers(), MembershipJpaEntity::getUserId)
                     .stream()
                     .map(memberMapper)
                     .collect(Collectors.toMap(
-                            com.timcritt.tfg.domain.model.Member::getUserId,
+                            Membership::getUserId,
                             m -> m,
                             (a, b) -> a,
                             java.util.LinkedHashMap::new));
@@ -62,13 +64,13 @@ public final class ClassroomEntityMapper {
     }
 
     public static ClassroomJpaEntity toEntity(Classroom domain) {
-        return toEntity(domain, MemberEntityMapper::toEntity, MaterialReferenceEntityMapper::toEntity);
+        return toEntity(domain, MembershipEntityMapper::toEntity, MaterialReferenceEntityMapper::toEntity);
     }
 
     public static ClassroomJpaEntity toEntity(
             Classroom domain,
-            java.util.function.Function<com.timcritt.tfg.domain.model.Member, com.timcritt.tfg.infrastructure.persistence.jpa.MemberJpaEntity> memberMapper,
-            java.util.function.Function<com.timcritt.tfg.domain.model.MaterialReference, com.timcritt.tfg.infrastructure.persistence.jpa.MaterialReferenceJpaEntity> materialMapper
+            java.util.function.Function<Membership, MembershipJpaEntity> memberMapper,
+            java.util.function.Function<MaterialReference, com.timcritt.tfg.infrastructure.persistence.jpa.MaterialReferenceJpaEntity> materialMapper
     ) {
         if (domain == null) {
             return null;
@@ -86,7 +88,7 @@ public final class ClassroomEntityMapper {
         entity.setId(domain.getId());
         entity.setJoinCode(domain.getJoinCode());
         if (domain.getMembers() != null) {
-            List<MemberJpaEntity> memberEntities = domain.getMembers().values().stream()
+            List<MembershipJpaEntity> memberEntities = domain.getMembers().values().stream()
                 .map(memberMapper)
                 .collect(Collectors.toList());
             memberEntities.forEach(member -> member.setClassroom(entity));
@@ -94,7 +96,7 @@ public final class ClassroomEntityMapper {
         }
 
         if (domain.getMaterials() != null) {
-            entity.setMaterials(distinctByKey(domain.getMaterials(), com.timcritt.tfg.domain.model.MaterialReference::getMaterialId).stream()
+            entity.setMaterials(distinctByKey(domain.getMaterials(), MaterialReference::getMaterialId).stream()
                     .map(material -> {
                         MaterialReferenceJpaEntity materialEntity = materialMapper.apply(material);
                         materialEntity.setClassroom(entity);

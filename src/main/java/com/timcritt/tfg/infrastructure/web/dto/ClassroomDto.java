@@ -20,7 +20,7 @@ public class ClassroomDto {
     @NotNull
     private Instant updatedAt;
     @NotNull
-    private List<MemberDto> members;
+    private List<MembershipDto> members;
     @NotNull
     private List<MaterialReferenceDto> materials;
     @NotNull

@@ -1,6 +1,6 @@
 package com.timcritt.tfg.infrastructure.web.dtoMapper;
 
-import com.timcritt.tfg.domain.model.MaterialDetails;
+import com.timcritt.tfg.domain.projection.MaterialDetails;
 import com.timcritt.tfg.infrastructure.web.dto.MaterialDetailsDto;
 
 public final class MaterialDetailsDtoMapper {

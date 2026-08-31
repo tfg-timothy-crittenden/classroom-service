@@ -2,8 +2,8 @@ package com.timcritt.tfg.infrastructure.persistence;
 
 import com.timcritt.tfg.application.port.outbound.MaterialReferenceAssignmentView;
 import com.timcritt.tfg.application.port.outbound.repository.MaterialReferenceRepositoryPort;
-import com.timcritt.tfg.domain.model.ClassroomRole;
-import com.timcritt.tfg.domain.model.MaterialReference;
+import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
+import com.timcritt.tfg.domain.aggregate.classroom.MaterialReference;
 
 import com.timcritt.tfg.infrastructure.persistence.jpa.MaterialReferenceJpaEntity;
 import com.timcritt.tfg.infrastructure.persistence.spring.MaterialReferenceJpaRepository;

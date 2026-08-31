@@ -1,7 +1,7 @@
 package com.timcritt.tfg.application.service.useCase;
 
 import com.timcritt.tfg.application.port.inbound.ClassroomDirectoryUseCase;
-import com.timcritt.tfg.domain.model.Classroom;
+import com.timcritt.tfg.domain.aggregate.classroom.Classroom;
 import com.timcritt.tfg.application.port.outbound.repository.ClassroomRepositoryPort;
 
 import java.util.List;

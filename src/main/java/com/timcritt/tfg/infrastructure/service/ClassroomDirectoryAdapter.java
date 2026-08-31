@@ -2,7 +2,7 @@ package com.timcritt.tfg.infrastructure.service;
 
 import com.timcritt.tfg.application.port.outbound.repository.ClassroomRepositoryPort;
 import com.timcritt.tfg.application.service.useCase.ClassroomDirectoryUseCaseImpl;
-import com.timcritt.tfg.domain.model.Classroom;
+import com.timcritt.tfg.domain.aggregate.classroom.Classroom;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
