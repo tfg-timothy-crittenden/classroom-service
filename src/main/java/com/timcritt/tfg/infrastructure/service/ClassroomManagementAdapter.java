@@ -29,7 +29,7 @@ public class ClassroomManagementAdapter  {
     private final ClassroomManagementUseCaseImpl delegate;
     private final MemberRoleServiceAdapter memberRoleService;
     private final MaterialDetailsRepositoryPort materialDetailsRepository;
-    
+
 
     public ClassroomManagementAdapter(ClassroomRepositoryPort repository,
                                       MembershipRepositoryPort memberRepository,
@@ -90,8 +90,6 @@ public class ClassroomManagementAdapter  {
         List<Membership> teacherMemberships = teachers.stream().map(teacherDto -> {
             Membership membership = new Membership();
             membership.setUserId(teacherDto.getUserId());
-            membership.setName(teacherDto.getName());
-            membership.setSurname(teacherDto.getSurname());
             membership.setRole(ClassroomRole.TEACHER);
             membership.setCreatedAt(java.time.Instant.now());
             membership.setUpdatedAt(java.time.Instant.now());

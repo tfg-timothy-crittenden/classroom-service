@@ -8,8 +8,6 @@ public class TeacherSummaryDtoMapper {
         TeacherSummaryDto dto = new TeacherSummaryDto();
         dto.setMemberId(membership.getId());
         dto.setUserId(membership.getUserId());
-        dto.setName(membership.getName());
-        dto.setSurname(membership.getSurname());
         return dto;
     }
 }

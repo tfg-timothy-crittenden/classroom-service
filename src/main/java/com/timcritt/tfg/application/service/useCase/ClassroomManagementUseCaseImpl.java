@@ -73,7 +73,7 @@ public class ClassroomManagementUseCaseImpl implements ClassroomManagementUseCas
         if (classroom == null) {
             throw new ClassroomNotFoundException(classroomId);
         }
-        classroom.assignTeacher(userId, name, surname);
+        classroom.assignTeacher(userId);
         return classroomRepository.save(classroom);
     }
 
@@ -83,7 +83,7 @@ public class ClassroomManagementUseCaseImpl implements ClassroomManagementUseCas
         if (classroom == null) {
             throw new ClassroomNotFoundException("Classroom not found for code: " + classCode);
         }
-        classroom.assignStudent(userId, name, surname);
+        classroom.assignStudent(userId);
         return classroomRepository.save(classroom);
     }
 

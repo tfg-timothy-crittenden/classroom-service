@@ -47,18 +47,14 @@ public class Classroom {
         this.materials = materials != null ? materials : new ArrayList<>();
     }
 
-    public void assignTeacher(Long userId, String firstName, String surname) {
+    public void assignTeacher(Long userId) {
         Objects.requireNonNull(userId, "userId cannot be null");
-        Objects.requireNonNull(firstName, "firstName cannot be null");
-        Objects.requireNonNull(surname, "surname cannot be null");
-        assignMember(userId, firstName, surname, ClassroomRole.TEACHER);
+        assignMember(userId, ClassroomRole.TEACHER);
     }
 
-    public void assignStudent(Long userId, String firstName, String surname) {
+    public void assignStudent(Long userId) {
         Objects.requireNonNull(userId, "userId cannot be null");
-        Objects.requireNonNull(firstName, "firstName cannot be null");
-        Objects.requireNonNull(surname, "surname cannot be null");
-        assignMember(userId, firstName, surname, ClassroomRole.STUDENT);
+        assignMember(userId, ClassroomRole.STUDENT);
     }
 
     public void syncTeachers(List<Membership> newTeachers) {
@@ -80,14 +76,14 @@ public class Classroom {
         for (Membership teacher : newTeachers) {
             Membership existing = members.get(teacher.getUserId());
             if (existing == null) {
-                assignTeacher(teacher.getUserId(), teacher.getName(), teacher.getSurname());
+                assignTeacher(teacher.getUserId());
                 continue;
             }
 
             //Don't promote students to teachers
             if (existing.getRole() == ClassroomRole.STUDENT) {
                 throw new MemberAlreadyInClassroomException(
-                        existing.fullName() + " is already a student in " + this.name
+                        "User is already a student in " + this.name
                 );
             }
         }
@@ -118,22 +114,22 @@ public class Classroom {
     }
 
 //  Auxiliary Methods
-    private void assignMember(Long userId, String firstName, String surname, ClassroomRole role) {
+    private void assignMember(Long userId, ClassroomRole role) {
         Membership existing = members.get(userId);
 
         if (existing == null) {
             Instant now = Instant.now();
-            members.put(userId, new Membership(null, userId, firstName, surname, role, now, now));
+            members.put(userId, new Membership(null, userId, role, now, now));
             return;
         }
 
         if (existing.getRole() == ClassroomRole.STUDENT) {
             throw new MemberAlreadyInClassroomException(
-                    existing.fullName() + " is already a student in " + this.name
+                    "User is already a student in " + this.name
             );
         }
         throw new TeacherAlreadyAssignedException(
-                existing.fullName() + " is already a teacher in " + this.name
+                "User is already a teacher in " + this.name
         );
     }
 

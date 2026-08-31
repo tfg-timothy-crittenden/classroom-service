@@ -37,7 +37,7 @@ class ClassroomEntityMapperTest {
         classroom.setUpdatedAt(Instant.now());
         classroom.setMembers(Map.of(
                 TEACHER_USER_ID,
-                new Membership(null, TEACHER_USER_ID, TEACHER_NAME, TEACHER_SURNAME, ClassroomRole.TEACHER, Instant.now(), Instant.now())
+                new Membership(null, TEACHER_USER_ID, ClassroomRole.TEACHER, Instant.now(), Instant.now())
         ));
         classroom.setMaterials(List.of(
                 new MaterialReference(null, MATERIAL_ID, ClassroomRole.TEACHER)
@@ -62,8 +62,7 @@ class ClassroomEntityMapperTest {
         MembershipJpaEntity firstTeacher = new MembershipJpaEntity();
         firstTeacher.setId(1L);
         firstTeacher.setUserId(TEACHER_USER_ID);
-        firstTeacher.setName(TEACHER_NAME);
-        firstTeacher.setSurname(TEACHER_SURNAME);
+
         firstTeacher.setRole(ClassroomRole.TEACHER);
         firstTeacher.setCreatedAt(now);
         firstTeacher.setUpdatedAt(now);
@@ -71,8 +70,7 @@ class ClassroomEntityMapperTest {
         MembershipJpaEntity duplicateTeacher = new MembershipJpaEntity();
         duplicateTeacher.setId(2L);
         duplicateTeacher.setUserId(TEACHER_USER_ID);
-        duplicateTeacher.setName(TEACHER_NAME);
-        duplicateTeacher.setSurname(TEACHER_SURNAME);
+
         duplicateTeacher.setRole(ClassroomRole.TEACHER);
         duplicateTeacher.setCreatedAt(now);
         duplicateTeacher.setUpdatedAt(now);
@@ -80,8 +78,7 @@ class ClassroomEntityMapperTest {
         MembershipJpaEntity student = new MembershipJpaEntity();
         student.setId(3L);
         student.setUserId(STUDENT_USER_ID);
-        student.setName(STUDENT_NAME);
-        student.setSurname(STUDENT_SURNAME);
+
         student.setRole(ClassroomRole.STUDENT);
         student.setCreatedAt(now);
         student.setUpdatedAt(now);

@@ -148,7 +148,7 @@ class ClassroomUseCaseImplTest {
                 MemberAlreadyInClassroomException.class,
                 () -> useCase.syncTeachersForClassroom(
                         7L,
-                        List.of(new Membership(null, 42L, "John", "Smith", ClassroomRole.TEACHER, Instant.now(), Instant.now()))
+                        List.of(new Membership(null, 42L, ClassroomRole.TEACHER, Instant.now(), Instant.now()))
                 )
         );
 
@@ -162,7 +162,7 @@ class ClassroomUseCaseImplTest {
         Classroom classroom = new Classroom(7L, "Math", "Math class");
         classrooms.put(classroom.getId(), classroom);
 
-        Membership newTeacher = new Membership(null, 99L, "Alice", "Brown", ClassroomRole.TEACHER, Instant.now(), Instant.now());
+        Membership newTeacher = new Membership(null, 99L, ClassroomRole.TEACHER, Instant.now(), Instant.now());
         Classroom updated = useCase.assignTeacherToClassroom(7L, 99L, "Alice", "Brown");
 
         assertTrue(updated.getMembers().containsKey(99L));
@@ -236,27 +236,14 @@ class ClassroomUseCaseImplTest {
         Classroom classroom = new Classroom(7L, "Math", "Math class");
         classrooms.put(classroom.getId(), classroom);
 
-        Membership newTeacher = new Membership(null, 77L, "New", "Teacher", ClassroomRole.TEACHER, Instant.now(), Instant.now());
+        Membership newTeacher = new Membership(null, 77L, ClassroomRole.TEACHER, Instant.now(), Instant.now());
         useCase.syncTeachersForClassroom(7L, List.of(newTeacher));
 
         Classroom updated = classrooms.get(7L);
         assertTrue(updated.getMembers().containsKey(77L));
     }
 
-    @Test
-    void syncTeachers_keepsExistingTeacherProfileUnchanged() {
-        Classroom classroom = classroomWithTeacher(); // teacher userId=42, name Jane Doe
-        classrooms.put(classroom.getId(), classroom);
 
-        Membership updatedTeacher = new Membership(null, 42L, "Janet", "Doeson", ClassroomRole.TEACHER, Instant.now(), Instant.now());
-        useCase.syncTeachersForClassroom(7L, List.of(updatedTeacher));
-
-        Classroom updated = classrooms.get(7L);
-        Membership teacher = updated.getMembers().get(42L);
-        assertNotNull(teacher);
-        assertEquals("Jane", teacher.getName());
-        assertEquals("Doe", teacher.getSurname());
-    }
 
     // ── save ──────────────────────────────────────────────────────────────────
 
@@ -315,8 +302,8 @@ class ClassroomUseCaseImplTest {
         classroom.setCreatedAt(Instant.now());
         classroom.setUpdatedAt(Instant.now());
 
-        Membership teacher = new Membership(null, 43L, "Jane", "Doe", ClassroomRole.TEACHER, Instant.now(), Instant.now());
-        Membership student = new Membership(null, 42L, "John", "Smith", ClassroomRole.STUDENT, Instant.now(), Instant.now());
+        Membership teacher = new Membership(null, 43L,  ClassroomRole.TEACHER, Instant.now(), Instant.now());
+        Membership student = new Membership(null, 42L, ClassroomRole.STUDENT, Instant.now(), Instant.now());
         classroom.addMember(teacher);
         classroom.addMember(student);
         return classroom;
@@ -328,7 +315,7 @@ class ClassroomUseCaseImplTest {
         classroom.setCreatedAt(Instant.now());
         classroom.setUpdatedAt(Instant.now());
 
-        Membership teacher = new Membership(null, 42L, "Jane", "Doe", ClassroomRole.TEACHER, Instant.now(), Instant.now());
+        Membership teacher = new Membership(null, 42L, ClassroomRole.TEACHER, Instant.now(), Instant.now());
         classroom.addMember(teacher);
         return classroom;
     }
@@ -339,7 +326,7 @@ class ClassroomUseCaseImplTest {
         classroom.setCreatedAt(Instant.now());
         classroom.setUpdatedAt(Instant.now());
 
-        Membership student = new Membership(null, 42L, "John", "Smith", ClassroomRole.STUDENT, Instant.now(), Instant.now());
+        Membership student = new Membership(null, 42L, ClassroomRole.STUDENT, Instant.now(), Instant.now());
         classroom.addMember(student);
         return classroom;
     }

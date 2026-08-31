@@ -41,7 +41,7 @@ class MembershipRepositoryAdapterTest {
         final ClassroomJpaEntity classroom = classroomJpaRepository.saveAndFlush(
                 new ClassroomJpaEntity("TestClass", "desc", Instant.now(), Instant.now()));
 
-        final Membership membership = new Membership(null, 42L, "John", "Doe", ClassroomRole.STUDENT, Instant.now(), Instant.now());
+        final Membership membership = new Membership(null, 42L,ClassroomRole.STUDENT, Instant.now(), Instant.now());
         memberRepositoryAdapter.saveMember(classroom.getId(), membership);
 
         // Verify membership is persisted and associated
@@ -49,8 +49,7 @@ class MembershipRepositoryAdapterTest {
                 .filter(m -> m.getUserId().equals(42L) && m.getClassroom().getId().equals(classroom.getId()))
                 .findFirst();
         assertTrue(persisted.isPresent());
-        assertEquals("John", persisted.get().getName());
-        assertEquals("Doe", persisted.get().getSurname());
+
         assertEquals(ClassroomRole.STUDENT, persisted.get().getRole());
     }
 
@@ -59,7 +58,7 @@ class MembershipRepositoryAdapterTest {
         final ClassroomJpaEntity classroom = classroomJpaRepository.saveAndFlush(
                 new ClassroomJpaEntity("TestClass2", "desc", Instant.now(), Instant.now()));
 
-        final Membership membership = new Membership(null, 99L, "Alice", "Smith", ClassroomRole.STUDENT, Instant.now(), Instant.now());
+        final Membership membership = new Membership(null, 99L, ClassroomRole.STUDENT, Instant.now(), Instant.now());
         memberRepositoryAdapter.saveMember(classroom.getId(), membership);
         // Try saving again (should throw due to unique constraint)
         assertThrows(Exception.class, () -> memberRepositoryAdapter.saveMember(classroom.getId(), membership));
