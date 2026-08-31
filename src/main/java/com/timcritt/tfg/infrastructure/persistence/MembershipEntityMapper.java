@@ -14,8 +14,6 @@ public final class MembershipEntityMapper {
         return new Membership(
                 entity.getId(),
                 entity.getUserId(),
-                entity.getName(),
-                entity.getSurname(),
                 entity.getRole(),
                 entity.getCreatedAt(),
                 entity.getUpdatedAt()
@@ -30,8 +28,6 @@ public final class MembershipEntityMapper {
         MembershipJpaEntity entity = new MembershipJpaEntity();
         entity.setId(domain.getId());
         entity.setUserId(domain.getUserId());
-        entity.setName(domain.getName());
-        entity.setSurname(domain.getSurname());
         entity.setRole(domain.getRole());
         entity.setCreatedAt(domain.getCreatedAt());
         entity.setUpdatedAt(domain.getUpdatedAt());

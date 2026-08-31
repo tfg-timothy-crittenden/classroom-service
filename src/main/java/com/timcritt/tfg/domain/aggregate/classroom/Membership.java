@@ -18,11 +18,10 @@ public class Membership {
 
     public Membership() {}
 
-    public Membership(Long id, Long userId, String name, String surname, ClassroomRole role, Instant createdAt, Instant updatedAt) {
+    public Membership(Long id, Long userId, ClassroomRole role, Instant createdAt, Instant updatedAt) {
         this.id = id;
         this.userId = userId;
-        this.name = name;
-        this.surname = surname;
+
         this.role = role;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -41,18 +40,6 @@ public class Membership {
         this.userId = userId;
     }
 
-    public String getName() {
-        return name;
-    }
-    public void setName(String name) {
-        this.name = name;
-    }
-    public String getSurname() {
-        return surname;
-    }
-    public void setSurname(String surname) {
-        this.surname = surname;
-    }
 
     public ClassroomRole getRole() {
         return role;
@@ -74,10 +61,4 @@ public class Membership {
         this.updatedAt = updatedAt;
     }
 
-    /** Returns the member's full name, trimming any null/blank parts. */
-    public String fullName() {
-        String safeName = name == null ? "" : name.trim();
-        String safeSurname = surname == null ? "" : surname.trim();
-        return (safeName + " " + safeSurname).trim();
-    }
 }

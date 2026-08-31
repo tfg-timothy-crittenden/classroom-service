@@ -24,7 +24,7 @@ public class MemberProfileEntityMapper {
         if (domain == null) return null;
 
         MemberProfileJpaEntity entity = new MemberProfileJpaEntity();
-        entity.setUserId(domain.getMemberId());
+        entity.setUserId(domain.getUserId());
         entity.setVersion(domain.getVersion());
         entity.setFirstName(domain.getFirstName());
         entity.setLastName(domain.getLastName());

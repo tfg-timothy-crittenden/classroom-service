@@ -40,10 +40,6 @@ public class MembershipJpaEntity {
     @JoinColumn(name = "classroom_id", nullable = false)
     private ClassroomJpaEntity classroom;
 
-    @Column(name = "name")
-    private String name;
 
-    @Column(name = "surname")
-    private String surname;
 
 }

@@ -22,20 +22,19 @@ public class MemberProfile {
         return new Builder();
     }
 
-    public void updateProfile(String firstname, String lastname) {
-
+    public void updateProfile(String firstName, String lastName) {
         if (firstName != null) {
-            if(firstname.isBlank()) {
-                throw new IllegalArgumentException("firstname cannot be blank");
+            if (firstName.isBlank()) {
+                throw new IllegalArgumentException("firstName cannot be blank");
             }
-            this.firstName = firstname;
+            this.firstName = firstName.trim();
         }
 
-        if (lastname != null) {
-            if(lastname.isBlank()) {
-                throw new IllegalArgumentException("lastname cannot be blank");
+        if (lastName != null) {
+            if (lastName.isBlank()) {
+                throw new IllegalArgumentException("lastName cannot be blank");
             }
-            this.lastName = lastname;
+            this.lastName = lastName.trim();
         }
     }
 
@@ -76,7 +75,7 @@ public class MemberProfile {
         }
     }
 
-    public Long getMemberId() { return userId; }
+    public Long getUserId() { return userId; }
     public Long getVersion() {return version;}
     public String getFirstName() {return firstName;}
     public String getLastName() {return lastName;}
