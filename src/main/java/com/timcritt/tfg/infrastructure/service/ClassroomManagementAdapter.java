@@ -79,9 +79,8 @@ public class ClassroomManagementAdapter  {
     public Classroom assignTeacherToClassroom(Long classroomId, TeacherDto teacherDto) {
         return delegate.assignTeacherToClassroom(
                 classroomId,
-                teacherDto.getUserId(),
-                teacherDto.getName(),
-                teacherDto.getSurname()
+                teacherDto.getUserId()
+
         );
     }
 
@@ -101,7 +100,7 @@ public class ClassroomManagementAdapter  {
 
     @Transactional
     public Classroom joinClassroom(Long userId, String classCode, String name, String surname) {
-        return delegate.joinClassroom(userId, classCode, name, surname);
+        return delegate.joinClassroom(userId, classCode);
     }
 
     @Transactional

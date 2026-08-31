@@ -120,7 +120,7 @@ class ClassroomUseCaseImplTest {
 
         MemberAlreadyInClassroomException exception = assertThrows(
                 MemberAlreadyInClassroomException.class,
-                () -> useCase.assignTeacherToClassroom(7L, 42L, "John", "Smith")
+                () -> useCase.assignTeacherToClassroom(7L, 42L)
         );
 
         assertEquals("John Smith is already a student in Math", exception.getMessage());
@@ -133,10 +133,10 @@ class ClassroomUseCaseImplTest {
 
         MemberAlreadyInClassroomException exception = assertThrows(
                 MemberAlreadyInClassroomException.class,
-                () -> useCase.joinClassroom(42L, "JOIN-123", "John", "Smith")
+                () -> useCase.joinClassroom(42L, "JOIN-123")
         );
 
-        assertEquals("John Smith is already a student in Math", exception.getMessage());
+        assertEquals("User is already a student in Math", exception.getMessage());
     }
 
     @Test
@@ -152,7 +152,7 @@ class ClassroomUseCaseImplTest {
                 )
         );
 
-        assertEquals("John Smith is already a student in Math", exception.getMessage());
+        assertEquals("User is already a student in Math", exception.getMessage());
     }
 
     // ── assignTeacherToClassroom ──────────────────────────────────────────────
@@ -163,7 +163,7 @@ class ClassroomUseCaseImplTest {
         classrooms.put(classroom.getId(), classroom);
 
         Membership newTeacher = new Membership(null, 99L, ClassroomRole.TEACHER, Instant.now(), Instant.now());
-        Classroom updated = useCase.assignTeacherToClassroom(7L, 99L, "Alice", "Brown");
+        Classroom updated = useCase.assignTeacherToClassroom(7L, 99L);
 
         assertTrue(updated.getMembers().containsKey(99L));
     }
@@ -172,7 +172,7 @@ class ClassroomUseCaseImplTest {
     void assignTeacher_throwsClassroomNotFoundWhenClassroomMissing() {
         assertThrows(
                 ClassroomNotFoundException.class,
-                () -> useCase.assignTeacherToClassroom(999L, 1L, "X", "Y")
+                () -> useCase.assignTeacherToClassroom(999L, 1L)
         );
     }
 
@@ -183,7 +183,7 @@ class ClassroomUseCaseImplTest {
 
         assertThrows(
                 TeacherAlreadyAssignedException.class,
-                () -> useCase.assignTeacherToClassroom(7L, 42L, "Jane", "Doe")
+                () -> useCase.assignTeacherToClassroom(7L, 42L)
         );
     }
 
@@ -195,7 +195,7 @@ class ClassroomUseCaseImplTest {
         classroom.setJoinCode("JOIN-123");
         classrooms.put(classroom.getId(), classroom);
 
-        useCase.joinClassroom(55L, "JOIN-123", "New", "Student");
+        useCase.joinClassroom(55L, "JOIN-123");
 
         Classroom updated = classrooms.get(7L);
         assertTrue(updated.getMembers().containsKey(55L));
@@ -206,7 +206,7 @@ class ClassroomUseCaseImplTest {
     void joinClassroom_throwsClassroomNotFoundWhenJoinCodeInvalid() {
         assertThrows(
                 ClassroomNotFoundException.class,
-                () -> useCase.joinClassroom(1L, "BAD-CODE", "X", "Y")
+                () -> useCase.joinClassroom(1L, "BAD-CODE")
         );
     }
 

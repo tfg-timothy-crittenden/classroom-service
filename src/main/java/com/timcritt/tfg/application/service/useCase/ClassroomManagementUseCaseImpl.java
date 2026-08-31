@@ -53,11 +53,6 @@ public class ClassroomManagementUseCaseImpl implements ClassroomManagementUseCas
         return materialReferenceRepository.findByClassroomIdAndAssignedToRole(classroomId, role);
     }
 
-//    @Override
-//    public Optional<ClassroomRole> getMemberClassroomRole(Long classroomId, Long userId) {
-//        return memberRepository.findRoleByClassroomIdAndUserId(classroomId, userId);
-//    }
-
     // ************************************** COMMANDS *****************************************************
     @Override
     public Classroom save(Classroom classroom) {
@@ -68,7 +63,7 @@ public class ClassroomManagementUseCaseImpl implements ClassroomManagementUseCas
     }
 
     @Override
-    public Classroom assignTeacherToClassroom(Long classroomId, Long userId, String name, String surname) {
+    public Classroom assignTeacherToClassroom(Long classroomId, Long userId) {
         Classroom classroom = classroomRepository.findById(classroomId);
         if (classroom == null) {
             throw new ClassroomNotFoundException(classroomId);
@@ -78,7 +73,7 @@ public class ClassroomManagementUseCaseImpl implements ClassroomManagementUseCas
     }
 
     @Override
-    public Classroom joinClassroom(Long userId, String classCode, String name, String surname) {
+    public Classroom joinClassroom(Long userId, String classCode) {
         Classroom classroom = classroomRepository.findByJoinCode(classCode);
         if (classroom == null) {
             throw new ClassroomNotFoundException("Classroom not found for code: " + classCode);

@@ -12,7 +12,6 @@ public interface ClassroomManagementUseCase {
 
     // ***************************** QUERIES *************************************
 
-    Classroom assignTeacherToClassroom(Long classroomId, Long userId, String name, String surname);
 
     Classroom save(Classroom classroom);
 
@@ -22,11 +21,13 @@ public interface ClassroomManagementUseCase {
 
     List<Membership> getMembersByRole(Long classroomId, ClassroomRole role);
 
+    Classroom assignTeacherToClassroom(Long classroomId, Long userId);
+
     Classroom syncTeachersForClassroom(Long classroomId, List<Membership> teachers);
 
 
     // ************************************** COMMANDS ***************************************
-    Classroom joinClassroom(Long userId, String classCode, String name, String surname);
+    Classroom joinClassroom(Long userId, String classCode);
 
     void removeMemberFromClassroom(Long classroomId, Long userId);
 
