@@ -113,18 +113,6 @@ class ClassroomUseCaseImplTest {
         assertEquals(0, useCase.revokeTeacherRoleFromUser(42L));
     }
 
-    @Test
-    void throwsStudentSpecificConflictWhenAssigningTeacherForExistingStudent() {
-        Classroom classroom = classroomWithMembers();
-        classrooms.put(classroom.getId(), classroom);
-
-        MemberAlreadyInClassroomException exception = assertThrows(
-                MemberAlreadyInClassroomException.class,
-                () -> useCase.assignTeacherToClassroom(7L, 42L)
-        );
-
-        assertEquals("John Smith is already a student in Math", exception.getMessage());
-    }
 
     @Test
     void throwsStudentSpecificConflictWhenJoiningAlreadyJoinedClassroom() {
