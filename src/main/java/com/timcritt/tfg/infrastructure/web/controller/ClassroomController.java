@@ -6,11 +6,9 @@ import com.timcritt.tfg.infrastructure.service.ClassroomDirectoryAdapter;
 import com.timcritt.tfg.infrastructure.service.ClassroomManagementAdapter;
 import com.timcritt.tfg.infrastructure.service.ClassroomAuthorizationService;
 
+import com.timcritt.tfg.infrastructure.service.ClassroomMemberQueryAdapter;
 import com.timcritt.tfg.infrastructure.web.dto.*;
-import com.timcritt.tfg.infrastructure.web.dtoMapper.ClassroomDtoMapper;
-import com.timcritt.tfg.infrastructure.web.dtoMapper.MaterialReferenceDtoMapper;
-import com.timcritt.tfg.infrastructure.web.dtoMapper.MembershipDtoMapper;
-import com.timcritt.tfg.infrastructure.web.dtoMapper.RoleCheckDtoMapper;
+import com.timcritt.tfg.infrastructure.web.dtoMapper.*;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -41,26 +39,45 @@ public class ClassroomController {
     private final ClassroomManagementAdapter classroomManagementAdapter;
     private final ClassroomDirectoryAdapter classroomDirectoryAdapter;
     private final ClassroomAuthorizationService classroomAuthorizationService;
+    private final ClassroomMemberQueryAdapter classroomMemberQueryAdapter;
     private final ClassroomDtoMapper classroomDtoMapper;
 
 
 
     //Only accessible to members of the classroom and to admin
     @GetMapping("/{classroomId}/members/teachers")
-    public List<MembershipDto> getTeachersByClassroom(Authentication authentication, @PathVariable Long classroomId) {
-        classroomAuthorizationService.ensureCanReadTeachers(authentication, classroomId);
-        return classroomManagementAdapter.getTeachersByClassroomId(classroomId).stream()
-                .map(MembershipDtoMapper::toDto)
-                .collect(Collectors.toList());
+    public List<ClassroomMemberDto> getTeachersByClassroom(
+            Authentication authentication,
+            @PathVariable Long classroomId
+    ) {
+        classroomAuthorizationService.ensureCanReadTeachers(
+                authentication,
+                classroomId
+        );
+
+        return classroomMemberQueryAdapter
+                .getTeachers(classroomId)
+                .stream()
+                .map(ClassroomMemberDtoMapper::toDto)
+                .toList();
     }
 
     //Only accessible to teachers assigned to this classroom and to admin
     @GetMapping("/{classroomId}/members/students")
-    public List<MembershipDto> getStudentsByClassroom(Authentication authentication, @PathVariable Long classroomId) {
-        classroomAuthorizationService.ensureCanReadStudents(authentication, classroomId);
-        return classroomManagementAdapter.getStudentsByClassroomId(classroomId).stream()
-                .map(MembershipDtoMapper::toDto)
-                .collect(Collectors.toList());
+    public List<ClassroomMemberDto> getStudentsByClassroom(
+            Authentication authentication,
+            @PathVariable Long classroomId
+    ) {
+        classroomAuthorizationService.ensureCanReadStudents(
+                authentication,
+                classroomId
+        );
+
+        return classroomMemberQueryAdapter
+                .getStudents(classroomId)
+                .stream()
+                .map(ClassroomMemberDtoMapper::toDto)
+                .toList();
     }
 
     //Only accessible to the authenticated user with that userId and to admin
@@ -260,14 +277,12 @@ public class ClassroomController {
         }
 
         Long userId = Long.valueOf(userIdStr);
-        String name = jwt.getClaimAsString("name");
-        String surname = jwt.getClaimAsString("surname");
+//        String name = jwt.getClaimAsString("name");
+//        String surname = jwt.getClaimAsString("surname");
 
         Classroom classroom = classroomManagementAdapter.joinClassroom(
                 userId,
-                request.getJoinCode(),
-                name,
-                surname
+                request.getJoinCode()
         );
 
         JoinClassroomResponse response = new JoinClassroomResponse(

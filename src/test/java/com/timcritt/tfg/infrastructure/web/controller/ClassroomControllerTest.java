@@ -4,6 +4,7 @@ import com.timcritt.tfg.domain.aggregate.classroom.Classroom;
 import com.timcritt.tfg.infrastructure.service.ClassroomAuthorizationService;
 import com.timcritt.tfg.infrastructure.service.ClassroomDirectoryAdapter;
 import com.timcritt.tfg.infrastructure.service.ClassroomManagementAdapter;
+import com.timcritt.tfg.infrastructure.service.ClassroomMemberQueryAdapter;
 import com.timcritt.tfg.infrastructure.web.dtoMapper.ClassroomDtoMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,6 +30,7 @@ class ClassroomControllerTest {
     private MockMvc mockMvc;
     private ClassroomManagementAdapter classroomManagementService;
     private ClassroomDirectoryAdapter classroomDirectoryService;
+    private ClassroomMemberQueryAdapter classroomMemberQueryService;
 
     @BeforeEach
     void setUp() {
@@ -50,6 +52,7 @@ class ClassroomControllerTest {
                 classroomManagementService,
                 classroomDirectoryService,
                 authorizationService,
+                classroomMemberQueryService,
                 classroomDtoMapper
         );
 

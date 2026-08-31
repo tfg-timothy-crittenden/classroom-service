@@ -99,7 +99,7 @@ public class ClassroomManagementAdapter  {
     }
 
     @Transactional
-    public Classroom joinClassroom(Long userId, String classCode, String name, String surname) {
+    public Classroom joinClassroom(Long userId, String classCode) {
         return delegate.joinClassroom(userId, classCode);
     }
 
