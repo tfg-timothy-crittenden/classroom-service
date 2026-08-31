@@ -120,7 +120,7 @@ class ClassroomUseCaseImplTest {
 
         MemberAlreadyInClassroomException exception = assertThrows(
                 MemberAlreadyInClassroomException.class,
-                () -> useCase.assignTeacherToClassroom(7L, 42L)
+                () -> useCase.assignTeacherToClassroom(7L, 42L, "John", "Smith")
         );
 
         assertEquals("John Smith is already a student in Math", exception.getMessage());
@@ -163,7 +163,7 @@ class ClassroomUseCaseImplTest {
         classrooms.put(classroom.getId(), classroom);
 
         Membership newTeacher = new Membership(null, 99L, ClassroomRole.TEACHER, Instant.now(), Instant.now());
-        Classroom updated = useCase.assignTeacherToClassroom(7L, 99L);
+        Classroom updated = useCase.assignTeacherToClassroom(7L, 99L, null, null);
 
         assertTrue(updated.getMembers().containsKey(99L));
     }
@@ -172,7 +172,7 @@ class ClassroomUseCaseImplTest {
     void assignTeacher_throwsClassroomNotFoundWhenClassroomMissing() {
         assertThrows(
                 ClassroomNotFoundException.class,
-                () -> useCase.assignTeacherToClassroom(999L, 1L)
+                () -> useCase.assignTeacherToClassroom(999L, 1L, null, null)
         );
     }
 
@@ -183,7 +183,7 @@ class ClassroomUseCaseImplTest {
 
         assertThrows(
                 TeacherAlreadyAssignedException.class,
-                () -> useCase.assignTeacherToClassroom(7L, 42L)
+                () -> useCase.assignTeacherToClassroom(7L, 42L, null, null)
         );
     }
 

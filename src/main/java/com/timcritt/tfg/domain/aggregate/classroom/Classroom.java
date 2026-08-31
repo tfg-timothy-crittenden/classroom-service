@@ -49,12 +49,17 @@ public class Classroom {
 
     public void assignTeacher(Long userId) {
         Objects.requireNonNull(userId, "userId cannot be null");
-        assignMember(userId, ClassroomRole.TEACHER);
+        assignMember(userId, ClassroomRole.TEACHER, null, null);
+    }
+
+    public void assignTeacher(Long userId, String name, String surname) {
+        Objects.requireNonNull(userId, "userId cannot be null");
+        assignMember(userId, ClassroomRole.TEACHER, name, surname);
     }
 
     public void assignStudent(Long userId) {
         Objects.requireNonNull(userId, "userId cannot be null");
-        assignMember(userId, ClassroomRole.STUDENT);
+        assignMember(userId, ClassroomRole.STUDENT, null, null);
     }
 
     public void syncTeachers(List<Membership> newTeachers) {
@@ -114,7 +119,7 @@ public class Classroom {
     }
 
 //  Auxiliary Methods
-    private void assignMember(Long userId, ClassroomRole role) {
+    private void assignMember(Long userId, ClassroomRole role, String name, String surname) {
         Membership existing = members.get(userId);
 
         if (existing == null) {
@@ -124,8 +129,9 @@ public class Classroom {
         }
 
         if (existing.getRole() == ClassroomRole.STUDENT) {
+            String subject = (name != null && surname != null) ? name + " " + surname : "User";
             throw new MemberAlreadyInClassroomException(
-                    "User is already a student in " + this.name
+                    subject + " is already a student in " + this.name
             );
         }
         throw new TeacherAlreadyAssignedException(

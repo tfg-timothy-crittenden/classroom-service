@@ -21,7 +21,7 @@ public interface ClassroomManagementUseCase {
 
     List<Membership> getMembersByRole(Long classroomId, ClassroomRole role);
 
-    Classroom assignTeacherToClassroom(Long classroomId, Long userId);
+    Classroom assignTeacherToClassroom(Long classroomId, Long userId, String name, String surname);
 
     Classroom syncTeachersForClassroom(Long classroomId, List<Membership> teachers);
 

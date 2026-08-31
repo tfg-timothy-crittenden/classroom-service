@@ -79,8 +79,9 @@ public class ClassroomManagementAdapter  {
     public Classroom assignTeacherToClassroom(Long classroomId, TeacherDto teacherDto) {
         return delegate.assignTeacherToClassroom(
                 classroomId,
-                teacherDto.getUserId()
-
+                teacherDto.getUserId(),
+                teacherDto.getName(),
+                teacherDto.getSurname()
         );
     }
 

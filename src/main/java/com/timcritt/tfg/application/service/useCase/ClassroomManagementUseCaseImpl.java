@@ -63,12 +63,12 @@ public class ClassroomManagementUseCaseImpl implements ClassroomManagementUseCas
     }
 
     @Override
-    public Classroom assignTeacherToClassroom(Long classroomId, Long userId) {
+    public Classroom assignTeacherToClassroom(Long classroomId, Long userId, String name, String surname) {
         Classroom classroom = classroomRepository.findById(classroomId);
         if (classroom == null) {
             throw new ClassroomNotFoundException(classroomId);
         }
-        classroom.assignTeacher(userId);
+        classroom.assignTeacher(userId, name, surname);
         return classroomRepository.save(classroom);
     }
 
