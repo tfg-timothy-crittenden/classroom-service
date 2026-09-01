@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.timcritt.tfg.domain.exception.InvalidClassroomMaterialsException;
 import com.timcritt.tfg.domain.exception.MemberNotFoundException;
 import com.timcritt.tfg.domain.exception.MemberAlreadyInClassroomException;
 import com.timcritt.tfg.domain.exception.TeacherAlreadyAssignedException;
@@ -135,9 +136,23 @@ public class Classroom {
 
     public void replaceMaterials(List<MaterialReference> newMaterials) {
         if (newMaterials == null) {
-            throw new IllegalArgumentException("newMaterials cannot be null");
+            throw new InvalidClassroomMaterialsException("newMaterials cannot be null");
         }
-        this.materials = newMaterials;
+
+        Set<Long> materialIds = new HashSet<>();
+        for (MaterialReference material : newMaterials) {
+            if (material == null) {
+                throw new InvalidClassroomMaterialsException("material cannot be null");
+            }
+            if (material.getMaterialId() == null) {
+                throw new InvalidClassroomMaterialsException("materialId cannot be null");
+            }
+            if (!materialIds.add(material.getMaterialId())) {
+                throw new InvalidClassroomMaterialsException("duplicate materialId: " + material.getMaterialId());
+            }
+        }
+
+        this.materials = new ArrayList<>(newMaterials);
     }
 
     public String getJoinCode() {

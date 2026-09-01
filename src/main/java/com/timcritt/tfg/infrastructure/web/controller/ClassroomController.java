@@ -2,11 +2,11 @@ package com.timcritt.tfg.infrastructure.web.controller;
 
 import com.timcritt.tfg.domain.aggregate.classroom.Classroom;
 import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
+import com.timcritt.tfg.infrastructure.service.ClassroomAuthorizationService;
 import com.timcritt.tfg.infrastructure.service.ClassroomDirectoryAdapter;
 import com.timcritt.tfg.infrastructure.service.ClassroomManagementAdapter;
-import com.timcritt.tfg.infrastructure.service.ClassroomAuthorizationService;
-
 import com.timcritt.tfg.infrastructure.service.ClassroomMemberQueryAdapter;
+import com.timcritt.tfg.infrastructure.service.ClassroomSummaryQueryAdapter;
 import com.timcritt.tfg.infrastructure.web.dto.*;
 import com.timcritt.tfg.infrastructure.web.dtoMapper.*;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -40,7 +40,9 @@ public class ClassroomController {
     private final ClassroomDirectoryAdapter classroomDirectoryAdapter;
     private final ClassroomAuthorizationService classroomAuthorizationService;
     private final ClassroomMemberQueryAdapter classroomMemberQueryAdapter;
+    private final ClassroomSummaryQueryAdapter classroomSummaryQueryAdapter;
     private final ClassroomDtoMapper classroomDtoMapper;
+    private final ClassroomSummaryDtoMapper classroomSummaryDtoMapper;
 
 
 
@@ -93,8 +95,8 @@ public class ClassroomController {
     @GetMapping("/summary/member/{userId}")
     public List<ClassroomSummaryDto> getClassroomSummariesByMember(Authentication authentication, @PathVariable Long userId) {
         classroomAuthorizationService.ensureCanReadMemberSummaries(authentication, userId);
-        return classroomDirectoryAdapter.getClassroomsByMember(userId).stream()
-                .map(classroomDtoMapper::toSummaryDto)
+        return classroomSummaryQueryAdapter.getClassroomSummariesByMember(userId).stream()
+                .map(classroomSummaryDtoMapper::toDto)
                 .collect(Collectors.toList());
     }
 
@@ -165,25 +167,9 @@ public class ClassroomController {
     @GetMapping
     public List<ClassroomSummaryDto> getAllClassroomSummaries(Authentication authentication) {
         classroomAuthorizationService.ensureSystemAdmin(authentication);
-        return classroomDirectoryAdapter.getAllClassrooms().stream()
-                .map(classroomDtoMapper::toSummaryDto)
+        return classroomSummaryQueryAdapter.getAllClassroomSummaries().stream()
+                .map(classroomSummaryDtoMapper::toDto)
                 .collect(Collectors.toList());
-    }
-
-    //Only for authenticated admins
-    @PutMapping(
-            value = "/{classroomId}/materials",
-            consumes = MediaType.APPLICATION_JSON_VALUE
-
-    )
-    public ResponseEntity<Void> updateClassroomMaterials(
-            Authentication authentication,
-            @PathVariable Long classroomId,
-            @Valid @RequestBody UpdateClassroomMaterialsRequest request
-    ) {
-        classroomAuthorizationService.ensureSystemAdmin(authentication);
-        classroomManagementAdapter.replaceMaterials(classroomId, request);
-        return ResponseEntity.ok().build();
     }
 
     //Only accessible to authenticated admins
@@ -212,6 +198,22 @@ public class ClassroomController {
 
     //Only accessible to authenticated admins
     @PutMapping(
+            value = "/{classroomId}/materials",
+            consumes = MediaType.APPLICATION_JSON_VALUE
+
+    )
+    public ResponseEntity<Void> updateClassroomMaterials(
+            Authentication authentication,
+            @PathVariable Long classroomId,
+            @Valid @RequestBody UpdateClassroomMaterialsRequest request
+    ) {
+        classroomAuthorizationService.ensureSystemAdmin(authentication);
+        classroomManagementAdapter.replaceMaterials(classroomId, request);
+        return ResponseEntity.ok().build();
+    }
+
+    //Only accessible to authenticated admins
+    @PutMapping(
             value = "/{classroomId}/teachers",
             consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE
@@ -226,7 +228,7 @@ public class ClassroomController {
         return ResponseEntity.ok(classroomDtoMapper.toDto(classroom));
     }
 
-    //Only accessible to authenticated admins
+    //Only for authenticated admins
     @DeleteMapping("/{classroomId}")
     public ResponseEntity<Void> deleteClassroom(Authentication authentication, @PathVariable Long classroomId) {
         classroomAuthorizationService.ensureSystemAdmin(authentication);
@@ -234,7 +236,7 @@ public class ClassroomController {
         return ResponseEntity.ok().build();
     }
 
-    //Only accessible to authenticated admins
+    //Only for authenticated admins
     @DeleteMapping(
             value = "/batch",
             consumes = MediaType.APPLICATION_JSON_VALUE,

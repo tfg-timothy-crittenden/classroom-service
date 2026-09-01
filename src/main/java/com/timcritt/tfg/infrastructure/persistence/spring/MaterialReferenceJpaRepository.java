@@ -25,6 +25,7 @@ public interface MaterialReferenceJpaRepository extends JpaRepository<MaterialRe
     @Query("SELECT m FROM MaterialReferenceJpaEntity m JOIN FETCH m.classroom WHERE m.materialId = :materialId")
     List<MaterialReferenceJpaEntity> findByMaterialId(@Param("materialId") Long materialId);
 
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("DELETE FROM MaterialReferenceJpaEntity m WHERE m.materialId = :materialId")
     int deleteByMaterialId(@Param("materialId") Long materialId);

@@ -1,4 +1,4 @@
-CREATE TABLE member_profile (
+CREATE TABLE IF NOT EXISTS member_profile  (
                                 user_id BIGINT PRIMARY KEY,
                                 version BIGINT NOT NULL DEFAULT 0,
                                 first_name VARCHAR(255) NOT NULL,

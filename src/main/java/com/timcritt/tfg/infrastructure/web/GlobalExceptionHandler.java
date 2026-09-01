@@ -1,6 +1,7 @@
 package com.timcritt.tfg.infrastructure.web;
 
 import com.timcritt.tfg.application.exception.ClassroomNotFoundException;
+import com.timcritt.tfg.domain.exception.InvalidClassroomMaterialsException;
 import com.timcritt.tfg.domain.exception.MemberAlreadyInClassroomException;
 import com.timcritt.tfg.domain.exception.MemberNotFoundException;
 import com.timcritt.tfg.domain.exception.TeacherAlreadyAssignedException;
@@ -39,6 +40,12 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<ApiErrorResponse> handleMemberNotFoundException(MemberNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiErrorResponse(ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidClassroomMaterialsException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ApiErrorResponse> handleInvalidClassroomMaterialsException(InvalidClassroomMaterialsException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiErrorResponse(ex.getMessage()));
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)

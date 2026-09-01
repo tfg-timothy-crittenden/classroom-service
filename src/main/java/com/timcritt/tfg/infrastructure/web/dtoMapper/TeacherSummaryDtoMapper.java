@@ -1,5 +1,6 @@
 package com.timcritt.tfg.infrastructure.web.dtoMapper;
 
+import com.timcritt.tfg.application.query.ClassroomMemberView;
 import com.timcritt.tfg.domain.aggregate.classroom.Membership;
 import com.timcritt.tfg.infrastructure.web.dto.TeacherSummaryDto;
 
@@ -10,5 +11,13 @@ public class TeacherSummaryDtoMapper {
         dto.setUserId(membership.getUserId());
         return dto;
     }
-}
 
+    public TeacherSummaryDto toTeacherSummaryDto(ClassroomMemberView memberView) {
+        TeacherSummaryDto dto = new TeacherSummaryDto();
+        dto.setMemberId(memberView.membershipId());
+        dto.setUserId(memberView.userId());
+        dto.setName(memberView.firstName());
+        dto.setSurname(memberView.lastName());
+        return dto;
+    }
+}
