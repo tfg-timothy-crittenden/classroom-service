@@ -30,6 +30,26 @@ class ClassroomTest {
     }
 
     @Test
+    void replaceMaterialsRejectsNonPositiveMaterialId() {
+        Classroom classroom = new Classroom(1L, "Math", "Desc");
+
+        assertThrows(InvalidClassroomMaterialsException.class, () -> classroom.replaceMaterials(List.of(
+                new MaterialReference(null, 0L, ClassroomRole.TEACHER)
+        )));
+    }
+
+    @Test
+    void replaceMaterialsDefensivelyCopiesIncomingObjects() {
+        Classroom classroom = new Classroom(1L, "Math", "Desc");
+        MaterialReference incoming = new MaterialReference(10L, 10002L, ClassroomRole.TEACHER);
+
+        classroom.replaceMaterials(List.of(incoming));
+        incoming.setMaterialId(99999L);
+
+        assertEquals(10002L, classroom.getMaterials().getFirst().getMaterialId());
+    }
+
+    @Test
     void replaceMaterialsReplacesCurrentList() {
         Classroom classroom = new Classroom(1L, "Math", "Desc");
         classroom.replaceMaterials(List.of(new MaterialReference(null, 1L, ClassroomRole.TEACHER)));

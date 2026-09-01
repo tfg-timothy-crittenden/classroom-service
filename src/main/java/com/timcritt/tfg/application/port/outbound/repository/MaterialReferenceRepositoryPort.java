@@ -18,6 +18,7 @@ public interface MaterialReferenceRepositoryPort {
 
 
     // ************************************** COMMANDS *****************************************************
+
     int deleteByMaterialId(Long materialId);
 
     void save(MaterialReference materialReference);

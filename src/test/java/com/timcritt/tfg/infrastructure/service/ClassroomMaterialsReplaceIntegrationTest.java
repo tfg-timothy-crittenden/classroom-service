@@ -6,7 +6,6 @@ import com.timcritt.tfg.infrastructure.web.dto.UpdateClassroomMaterialsRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -15,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @SpringBootTest(properties = {
-        "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1",
+        "spring.datasource.url=jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
         "spring.datasource.driver-class-name=org.h2.Driver",
         "spring.datasource.username=sa",
         "spring.datasource.password=",
@@ -24,7 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
         "spring.cloud.config.enabled=false",
         "classroom.grpc.enabled=false"
 })
-@Transactional
 class ClassroomMaterialsReplaceIntegrationTest {
 
     @Autowired

@@ -30,4 +30,5 @@ public interface MaterialReferenceJpaRepository extends JpaRepository<MaterialRe
     @Query("DELETE FROM MaterialReferenceJpaEntity m WHERE m.materialId = :materialId")
     int deleteByMaterialId(@Param("materialId") Long materialId);
 
+
 }

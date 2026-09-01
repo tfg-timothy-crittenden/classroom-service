@@ -19,4 +19,9 @@ public class MaterialDetailsUpdateServiceAdapter {
     public void updateDetails(Long materialId, Long version, String title, String part1Title, String part2Title, String description) {
         delegate.updateDetails(materialId, version, title, part1Title, part2Title, description);
     }
+
+    @Transactional
+    public void deleteByMaterialId(Long materialId) {
+        delegate.deleteByMaterialId(materialId);
+    }
 }

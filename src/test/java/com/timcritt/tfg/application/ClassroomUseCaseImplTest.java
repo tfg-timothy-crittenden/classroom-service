@@ -3,15 +3,15 @@ package com.timcritt.tfg.application;
 import com.timcritt.tfg.application.exception.ClassroomNotFoundException;
 import com.timcritt.tfg.application.port.outbound.*;
 import com.timcritt.tfg.application.port.outbound.repository.ClassroomRepositoryPort;
-import com.timcritt.tfg.application.port.outbound.repository.MaterialReferenceRepositoryPort;
+import com.timcritt.tfg.application.port.outbound.repository.MaterialDetailsRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.repository.MembershipRepositoryPort;
 import com.timcritt.tfg.domain.exception.MemberAlreadyInClassroomException;
 import com.timcritt.tfg.domain.exception.TeacherAlreadyAssignedException;
 import com.timcritt.tfg.application.service.useCase.ClassroomManagementUseCaseImpl;
 import com.timcritt.tfg.domain.aggregate.classroom.Classroom;
 import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
-import com.timcritt.tfg.domain.aggregate.classroom.MaterialReference;
 import com.timcritt.tfg.domain.aggregate.classroom.Membership;
+import com.timcritt.tfg.domain.projection.MaterialDetails;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -30,13 +30,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class ClassroomUseCaseImplTest {
 
     private final Map<Long, Classroom> classrooms = new ConcurrentHashMap<>();
+    private final Map<Long, MaterialDetails> materialDetailsById = new ConcurrentHashMap<>();
     private final InMemoryMembershipRepository memberRepository = new InMemoryMembershipRepository();
-    private final InMemoryMaterialReferenceRepository materialReferenceRepository = new InMemoryMaterialReferenceRepository() {
-        @Override
-        public List<MaterialReference> findByMaterialId(Long id) {
-            return List.of();
-        }
-    };
+    private final CapturingMaterialDetailsRequestPublisher materialDetailsRequestPublisher = new CapturingMaterialDetailsRequestPublisher();
 
     private final ClassroomRepositoryPort repository = new ClassroomRepositoryPort() {
         @Override
@@ -81,8 +77,31 @@ class ClassroomUseCaseImplTest {
         }
     };
 
+    private final MaterialDetailsRepositoryPort materialDetailsRepository = new MaterialDetailsRepositoryPort() {
+        @Override
+        public MaterialDetails findByMaterialId(Long id) {
+            return materialDetailsById.get(id);
+        }
+
+        @Override
+        public void save(MaterialDetails materialDetails) {
+            materialDetailsById.put(materialDetails.getMaterialId(), materialDetails);
+        }
+
+        @Override
+        public void deleteByMaterialId(Long materialId) {
+            materialDetailsById.remove(materialId);
+        }
+    };
+
     private final JoinCodeGenerator joinCodeGenerator = () -> "JOIN-123";
-    private final ClassroomManagementUseCaseImpl useCase = new ClassroomManagementUseCaseImpl(repository, memberRepository, joinCodeGenerator, materialReferenceRepository);
+    private final ClassroomManagementUseCaseImpl useCase = new ClassroomManagementUseCaseImpl(
+            repository,
+            memberRepository,
+            joinCodeGenerator,
+            materialDetailsRepository,
+            materialDetailsRequestPublisher
+    );
 
     @Test
     void removesExistingMemberFromClassroom() {
@@ -150,7 +169,6 @@ class ClassroomUseCaseImplTest {
         Classroom classroom = new Classroom(7L, "Math", "Math class");
         classrooms.put(classroom.getId(), classroom);
 
-        Membership newTeacher = new Membership(null, 99L, ClassroomRole.TEACHER, Instant.now(), Instant.now());
         Classroom updated = useCase.assignTeacherToClassroom(7L, 99L);
 
         assertTrue(updated.getMembers().containsKey(99L));
@@ -284,6 +302,41 @@ class ClassroomUseCaseImplTest {
         assertThrows(IllegalArgumentException.class, () -> useCase.revokeTeacherRoleFromUser(null));
     }
 
+    @Test
+    void replaceMaterials_requestsMissingMaterialDetails() {
+        Classroom classroom = new Classroom(7L, "Math", "Math class");
+        classrooms.put(classroom.getId(), classroom);
+        materialDetailsById.put(10001L, MaterialDetails.builder().materialId(10001L).version(1L).name("Has details").build());
+
+        useCase.replaceMaterials(new com.timcritt.tfg.application.command.UpdateClassroomMaterialsCommand(
+                7L,
+                List.of(
+                        new com.timcritt.tfg.application.command.UpdateClassroomMaterialsCommand.MaterialAssignment(10001L, ClassroomRole.STUDENT),
+                        new com.timcritt.tfg.application.command.UpdateClassroomMaterialsCommand.MaterialAssignment(10002L, ClassroomRole.TEACHER)
+                )
+        ));
+
+        assertEquals(List.of(10002L), materialDetailsRequestPublisher.lastRequestedMaterialIds);
+    }
+
+    @Test
+    void replaceMaterials_doesNotRequestWhenAllMaterialDetailsExist() {
+        Classroom classroom = new Classroom(8L, "Science", "Science class");
+        classrooms.put(classroom.getId(), classroom);
+        materialDetailsById.put(20001L, MaterialDetails.builder().materialId(20001L).version(2L).name("One").build());
+        materialDetailsById.put(20002L, MaterialDetails.builder().materialId(20002L).version(2L).name("Two").build());
+
+        useCase.replaceMaterials(new com.timcritt.tfg.application.command.UpdateClassroomMaterialsCommand(
+                8L,
+                List.of(
+                        new com.timcritt.tfg.application.command.UpdateClassroomMaterialsCommand.MaterialAssignment(20001L, ClassroomRole.STUDENT),
+                        new com.timcritt.tfg.application.command.UpdateClassroomMaterialsCommand.MaterialAssignment(20002L, ClassroomRole.TEACHER)
+                )
+        ));
+
+        assertTrue(materialDetailsRequestPublisher.lastRequestedMaterialIds.isEmpty());
+    }
+
     private Classroom classroomWithMembers() {
         Classroom classroom = new Classroom(7L, "Math", "Math class");
         classroom.setJoinCode("JOIN-123");
@@ -305,17 +358,6 @@ class ClassroomUseCaseImplTest {
 
         Membership teacher = new Membership(null, 42L, ClassroomRole.TEACHER, Instant.now(), Instant.now());
         classroom.addMember(teacher);
-        return classroom;
-    }
-
-    private Classroom classroomWithStudent() {
-        Classroom classroom = new Classroom(8L, "Student class 8", "Student class");
-        classroom.setJoinCode("JOIN-8");
-        classroom.setCreatedAt(Instant.now());
-        classroom.setUpdatedAt(Instant.now());
-
-        Membership student = new Membership(null, 42L, ClassroomRole.STUDENT, Instant.now(), Instant.now());
-        classroom.addMember(student);
         return classroom;
     }
 
@@ -357,38 +399,14 @@ class ClassroomUseCaseImplTest {
         private record Key(Long classroomId, Long userId) { }
     }
 
-//    TODO implement the actual in-memory repository with real methods that return something. Do it somewhere centally so we can reuse it.
-    private static abstract class InMemoryMaterialReferenceRepository implements MaterialReferenceRepositoryPort {
-
-
-        @Override
-        public List<MaterialReference> findByClassroomId(Long classroomId) {
-            return List.of();
-        }
+    private static class CapturingMaterialDetailsRequestPublisher implements MaterialDetailsRequestPublisherPort {
+        private List<Long> lastRequestedMaterialIds = List.of();
 
         @Override
-        public List<MaterialReference> findByClassroomIdAndAssignedToRole(Long classroomId, ClassroomRole role) {
-            return List.of();
+        public void requestMaterialDetails(List<Long> materialIds) {
+            this.lastRequestedMaterialIds = List.copyOf(materialIds);
         }
-
-        @Override
-        public List<MaterialReferenceAssignmentView> findAssignmentsByMaterialId(Long materialId) {
-            return List.of();
-        }
-
-
-
-    @Override
-    public int deleteByMaterialId(Long materialId) {
-        return 0;
     }
 
-    @Override
-    public void save(MaterialReference materialReference) {
-
-    }
-
-
-}
 }
 

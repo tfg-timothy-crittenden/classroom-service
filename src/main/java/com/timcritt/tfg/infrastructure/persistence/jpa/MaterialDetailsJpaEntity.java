@@ -4,8 +4,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -21,16 +19,16 @@ public class MaterialDetailsJpaEntity {
     @Column(nullable = false)
     private Long version;
 
-    @Column @NotNull @NotEmpty
+    @Column
     private String name;
 
-    @Column @NotNull @NotEmpty
+    @Column
     private String description;
 
-    @Column @NotNull @NotEmpty
+    @Column
     private String part1Title;
 
-    @Column @NotNull @NotEmpty
+    @Column
     private String part2Title;
 
     public MaterialDetailsJpaEntity() {}

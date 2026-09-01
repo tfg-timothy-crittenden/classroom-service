@@ -1,10 +1,11 @@
 package com.timcritt.tfg.infrastructure.service;
 
 import com.timcritt.tfg.application.port.outbound.JoinCodeGenerator;
+import com.timcritt.tfg.application.port.outbound.MaterialDetailsRequestPublisherPort;
 import com.timcritt.tfg.application.port.outbound.repository.ClassroomRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.repository.MaterialDetailsRepositoryPort;
-import com.timcritt.tfg.application.port.outbound.repository.MaterialReferenceRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.repository.MembershipRepositoryPort;
+import com.timcritt.tfg.domain.aggregate.classroom.Classroom;
 import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
 import com.timcritt.tfg.domain.projection.MaterialDetails;
 import com.timcritt.tfg.domain.aggregate.classroom.MaterialReference;
@@ -26,20 +27,21 @@ class ClassroomManagementAdapterTest {
         MembershipRepositoryPort memberRepository = mock(MembershipRepositoryPort.class);
         JoinCodeGenerator joinCodeGenerator = mock(JoinCodeGenerator.class);
         MemberRoleServiceAdapter memberRoleService = mock(MemberRoleServiceAdapter.class);
-        MaterialReferenceRepositoryPort materialReferenceRepository = mock(MaterialReferenceRepositoryPort.class);
         MaterialDetailsRepositoryPort materialDetailsRepository = mock(MaterialDetailsRepositoryPort.class);
+        MaterialDetailsRequestPublisherPort materialDetailsRequestPublisher = mock(MaterialDetailsRequestPublisherPort.class);
 
         ClassroomManagementAdapter adapter = new ClassroomManagementAdapter(
                 classroomRepository,
                 memberRepository,
                 joinCodeGenerator,
                 memberRoleService,
-                materialReferenceRepository,
-                materialDetailsRepository
+                materialDetailsRepository,
+                materialDetailsRequestPublisher
         );
 
-        when(materialReferenceRepository.findByClassroomIdAndAssignedToRole(7L, ClassroomRole.STUDENT))
-                .thenReturn(List.of(new MaterialReference(1L, 101L, ClassroomRole.STUDENT)));
+        Classroom classroom = new Classroom(7L, "classroom", "desc");
+        classroom.replaceMaterials(List.of(new MaterialReference(1L, 101L, ClassroomRole.STUDENT)));
+        when(classroomRepository.findById(7L)).thenReturn(classroom);
         when(materialDetailsRepository.findByMaterialId(101L))
                 .thenReturn(MaterialDetails.builder()
                         .materialId(101L)
@@ -60,7 +62,7 @@ class ClassroomManagementAdapterTest {
         assertEquals("Warm-up", dto.getPart1Title());
         assertEquals("Main task", dto.getPart2Title());
 
-        verify(materialReferenceRepository).findByClassroomIdAndAssignedToRole(7L, ClassroomRole.STUDENT);
+        verify(classroomRepository).findById(7L);
         verify(materialDetailsRepository).findByMaterialId(101L);
     }
 }

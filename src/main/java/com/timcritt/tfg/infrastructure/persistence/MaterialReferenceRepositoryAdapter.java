@@ -10,8 +10,7 @@ import com.timcritt.tfg.infrastructure.persistence.spring.MaterialReferenceJpaRe
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
-
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Repository
@@ -29,11 +28,6 @@ public class MaterialReferenceRepositoryAdapter implements MaterialReferenceRepo
     }
 
     // ***************************** QUERIES *************************************
-//    @Override
-//    public MaterialReference findById(Long id) {
-//        return materialReferenceJpaRepository.findById(id).map(MaterialReferenceEntityMapper::toDomain).orElse(null);
-//    }
-
 
     @Override
     public List<MaterialReference> findByClassroomId(Long classroomId) {
@@ -68,7 +62,7 @@ public class MaterialReferenceRepositoryAdapter implements MaterialReferenceRepo
 
     }
 
-    // ************************************** COMMANDS *****************************************************
+
     @Override
     @Transactional
     public int deleteByMaterialId(Long materialId) {
@@ -81,11 +75,5 @@ public class MaterialReferenceRepositoryAdapter implements MaterialReferenceRepo
     public void save(MaterialReference materialReference) {
         MaterialReferenceJpaEntity materialReferenceJpaEntity = MaterialReferenceEntityMapper.toEntity(materialReference);
         materialReferenceJpaRepository.save(materialReferenceJpaEntity);
-    }
-
-
-
-    private static String normalize(String value) {
-        return value == null || value.isBlank() ? null : value.trim();
     }
 }

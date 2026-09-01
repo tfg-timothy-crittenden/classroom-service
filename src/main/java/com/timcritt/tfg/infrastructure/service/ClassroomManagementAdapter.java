@@ -1,10 +1,10 @@
 package com.timcritt.tfg.infrastructure.service;
 
 import com.timcritt.tfg.application.command.UpdateClassroomMaterialsCommand;
+import com.timcritt.tfg.application.port.outbound.MaterialDetailsRequestPublisherPort;
 import com.timcritt.tfg.application.port.outbound.repository.ClassroomRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.JoinCodeGenerator;
 import com.timcritt.tfg.application.port.outbound.repository.MaterialDetailsRepositoryPort;
-import com.timcritt.tfg.application.port.outbound.repository.MaterialReferenceRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.repository.MembershipRepositoryPort;
 import com.timcritt.tfg.application.service.useCase.ClassroomManagementUseCaseImpl;
 import com.timcritt.tfg.domain.aggregate.classroom.Classroom;
@@ -16,6 +16,8 @@ import com.timcritt.tfg.infrastructure.web.dto.MaterialReferenceWithDetailsDto;
 import com.timcritt.tfg.infrastructure.web.dto.TeacherDto;
 import com.timcritt.tfg.infrastructure.web.dto.UpdateClassroomMaterialsRequest;
 import com.timcritt.tfg.infrastructure.web.dtoMapper.MaterialReferenceWithDetailsDtoMapper;
+import com.timcritt.tfg.infrastructure.web.dtoMapper.UpdateClassroomMaterialsCommandMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,7 @@ import java.util.Optional;
 
 
 @Service
+@Slf4j
 public class ClassroomManagementAdapter  {
 
     private final ClassroomManagementUseCaseImpl delegate;
@@ -35,9 +38,15 @@ public class ClassroomManagementAdapter  {
                                       MembershipRepositoryPort memberRepository,
                                       JoinCodeGenerator joinCodeGenerator,
                                       MemberRoleServiceAdapter memberRoleService,
-                                      MaterialReferenceRepositoryPort materialReferenceRepository,
-                                      MaterialDetailsRepositoryPort materialDetailsRepository) {
-        this.delegate = new ClassroomManagementUseCaseImpl(repository, memberRepository, joinCodeGenerator, materialReferenceRepository);
+                                      MaterialDetailsRepositoryPort materialDetailsRepository,
+                                      MaterialDetailsRequestPublisherPort materialDetailsRequestPublisher) {
+        this.delegate = new ClassroomManagementUseCaseImpl(
+                repository,
+                memberRepository,
+                joinCodeGenerator,
+                materialDetailsRepository,
+                materialDetailsRequestPublisher
+        );
         this.memberRoleService = memberRoleService;
         this.materialDetailsRepository = materialDetailsRepository;
     }
@@ -115,35 +124,19 @@ public class ClassroomManagementAdapter  {
 
     @Transactional
     public void replaceMaterials(Long classroomId, UpdateClassroomMaterialsRequest request) {
-        List<UpdateClassroomMaterialsCommand.MaterialAssignment> desired = request == null || request.getMaterials() == null
-                ? List.of()
-                : request.getMaterials().stream()
-                .map(m -> new UpdateClassroomMaterialsCommand.MaterialAssignment(
-                        m.getMaterialId(),
-                        m.getAssignedToRole()
-                ))
-                .toList();
-        UpdateClassroomMaterialsCommand command = new UpdateClassroomMaterialsCommand(classroomId, desired);
+        UpdateClassroomMaterialsCommand command = UpdateClassroomMaterialsCommandMapper.toCommand(classroomId, request);
+        String assignments = command.materials().stream()
+                .map(item -> item.materialId() + ":" + item.assignedToRole())
+                .toList()
+                .toString();
+        log.info(
+                "Replacing classroom materials classroomId={}, assignmentsCount={}, assignments={}",
+                classroomId,
+                command.materials().size(),
+                assignments
+        );
         delegate.replaceMaterials(command);
-
-        // Insert only if an entry does not already exist. Don't overwrite exiting rows. Material service is the
-        // canonical source for MaterialDetails field values.
-        if (request != null && request.getMaterials() != null) {
-            request.getMaterials().forEach(m -> {
-                if (m.getMaterialId() == null || m.getName() == null) return;
-                MaterialDetails details = MaterialDetails.builder()
-                        .materialId(m.getMaterialId())
-                        .name(m.getName())
-                        .description(m.getDescription())
-                        .part1Title(m.getPart1Title())
-                        .part2Title(m.getPart2Title())
-                        .build();
-                if(materialDetailsRepository.findByMaterialId(m.getMaterialId()) == null) {
-                    materialDetailsRepository.save(details);
-                }
-
-            });
-        }
+        log.info("Replaced classroom materials classroomId={}, assignmentsCount={}", classroomId, command.materials().size());
     }
 
 }

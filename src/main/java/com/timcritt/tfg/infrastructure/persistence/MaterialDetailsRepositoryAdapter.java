@@ -37,7 +37,12 @@ public class MaterialDetailsRepositoryAdapter implements MaterialDetailsReposito
     @Override
     @Transactional
     public void deleteByMaterialId(Long materialId) {
-        materialDetailsJpaRepository.deleteById(materialId);
+        if (materialId == null) {
+            return;
+        }
+        if (materialDetailsJpaRepository.existsById(materialId)) {
+            materialDetailsJpaRepository.deleteById(materialId);
+        }
     }
 }
 

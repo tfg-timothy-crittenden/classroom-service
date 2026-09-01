@@ -5,7 +5,8 @@ import com.timcritt.tfg.application.exception.ClassroomNotFoundException;
 import com.timcritt.tfg.application.port.inbound.ClassroomManagementUseCase;
 import com.timcritt.tfg.application.port.outbound.repository.ClassroomRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.JoinCodeGenerator;
-import com.timcritt.tfg.application.port.outbound.repository.MaterialReferenceRepositoryPort;
+import com.timcritt.tfg.application.port.outbound.MaterialDetailsRequestPublisherPort;
+import com.timcritt.tfg.application.port.outbound.repository.MaterialDetailsRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.repository.MembershipRepositoryPort;
 import com.timcritt.tfg.domain.aggregate.classroom.Classroom;
 import com.timcritt.tfg.domain.aggregate.classroom.MaterialReference;
@@ -13,19 +14,28 @@ import com.timcritt.tfg.domain.aggregate.classroom.Membership;
 import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
 
 import java.util.List;
+import java.util.Objects;
 
 public class ClassroomManagementUseCaseImpl implements ClassroomManagementUseCase {
 
     private final ClassroomRepositoryPort classroomRepository;
     private final MembershipRepositoryPort memberRepository;
     private final JoinCodeGenerator joinCodeGenerator;
-    private final MaterialReferenceRepositoryPort materialReferenceRepository;
+    private final MaterialDetailsRepositoryPort materialDetailsRepository;
+    private final MaterialDetailsRequestPublisherPort materialDetailsRequestPublisher;
 
-    public ClassroomManagementUseCaseImpl(ClassroomRepositoryPort repository, MembershipRepositoryPort memberRepository, JoinCodeGenerator joinCodeGenerator, MaterialReferenceRepositoryPort materialReferenceRepository) {
+    public ClassroomManagementUseCaseImpl(
+            ClassroomRepositoryPort repository,
+            MembershipRepositoryPort memberRepository,
+            JoinCodeGenerator joinCodeGenerator,
+            MaterialDetailsRepositoryPort materialDetailsRepository,
+            MaterialDetailsRequestPublisherPort materialDetailsRequestPublisher
+    ) {
         this.classroomRepository = repository;
         this.memberRepository = memberRepository;
         this.joinCodeGenerator = joinCodeGenerator;
-        this.materialReferenceRepository = materialReferenceRepository;
+        this.materialDetailsRepository = materialDetailsRepository;
+        this.materialDetailsRequestPublisher = materialDetailsRequestPublisher;
     }
 
 
@@ -50,7 +60,13 @@ public class ClassroomManagementUseCaseImpl implements ClassroomManagementUseCas
 
     @Override
     public List<MaterialReference> getClassroomMaterialsByRole(Long classroomId, ClassroomRole role) {
-        return materialReferenceRepository.findByClassroomIdAndAssignedToRole(classroomId, role);
+        Classroom classroom = classroomRepository.findById(classroomId);
+        if (classroom == null) {
+            throw new ClassroomNotFoundException(classroomId);
+        }
+        return classroom.getMaterials().stream()
+                .filter(material -> material.getAssignedToRole() == role)
+                .toList();
     }
 
     // ************************************** COMMANDS *****************************************************
@@ -126,6 +142,17 @@ public class ClassroomManagementUseCaseImpl implements ClassroomManagementUseCas
 
         classroom.replaceMaterials(materialReferences);
         classroomRepository.save(classroom);
+
+        List<Long> missingMaterialDetailsIds = command.materials().stream()
+                .map(UpdateClassroomMaterialsCommand.MaterialAssignment::materialId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .filter(materialId -> materialDetailsRepository.findByMaterialId(materialId) == null)
+                .toList();
+
+        if (!missingMaterialDetailsIds.isEmpty()) {
+            materialDetailsRequestPublisher.requestMaterialDetails(missingMaterialDetailsIds);
+        }
     }
 
 

@@ -2,6 +2,7 @@ package com.timcritt.tfg.infrastructure.kafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.timcritt.tfg.infrastructure.service.MaterialDetailsUpdateServiceAdapter;
 import com.timcritt.tfg.infrastructure.service.MaterialReferenceDeletionServiceAdapter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -13,10 +14,16 @@ public class MaterialDeletedEventListener {
 
     private final ObjectMapper objectMapper;
     private final MaterialReferenceDeletionServiceAdapter deletionService;
+    private final MaterialDetailsUpdateServiceAdapter materialDetailsService;
 
-    public MaterialDeletedEventListener(ObjectMapper objectMapper, MaterialReferenceDeletionServiceAdapter deletionService) {
+    public MaterialDeletedEventListener(
+            ObjectMapper objectMapper,
+            MaterialReferenceDeletionServiceAdapter deletionService,
+            MaterialDetailsUpdateServiceAdapter materialDetailsService
+    ) {
         this.objectMapper = objectMapper;
         this.deletionService = deletionService;
+        this.materialDetailsService = materialDetailsService;
     }
 
     @KafkaListener(
@@ -32,8 +39,9 @@ public class MaterialDeletedEventListener {
             }
 
             int removed = deletionService.deleteByMaterialId(event.materialId());
+            materialDetailsService.deleteByMaterialId(event.materialId());
             log.info(
-                    "Processed material deleted event for materialId={}, rootNodeId={}, deletedAt={}, removedReferences={}",
+                    "Processed material deleted event for materialId={}, rootNodeId={}, deletedAt={}, removedReferences={} and removed material details projection",
                     event.materialId(),
                     event.rootNodeId(),
                     event.deletedAt(),

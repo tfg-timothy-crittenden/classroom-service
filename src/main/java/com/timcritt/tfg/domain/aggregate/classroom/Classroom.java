@@ -45,7 +45,7 @@ public class Classroom {
         this.description = description;
         this.joinCode = joinCode;
         this.members = members != null ? members : new HashMap<>();
-        this.materials = materials != null ? materials : new ArrayList<>();
+        this.materials = sanitizeMaterials(materials != null ? materials : List.of());
     }
 
     public void assignTeacher(Long userId) {
@@ -139,7 +139,16 @@ public class Classroom {
             throw new InvalidClassroomMaterialsException("newMaterials cannot be null");
         }
 
+        this.materials = sanitizeMaterials(newMaterials);
+    }
+
+    private List<MaterialReference> sanitizeMaterials(List<MaterialReference> newMaterials) {
+        if (newMaterials == null) {
+            throw new InvalidClassroomMaterialsException("newMaterials cannot be null");
+        }
+
         Set<Long> materialIds = new HashSet<>();
+        List<MaterialReference> sanitized = new ArrayList<>(newMaterials.size());
         for (MaterialReference material : newMaterials) {
             if (material == null) {
                 throw new InvalidClassroomMaterialsException("material cannot be null");
@@ -147,12 +156,18 @@ public class Classroom {
             if (material.getMaterialId() == null) {
                 throw new InvalidClassroomMaterialsException("materialId cannot be null");
             }
+            if (material.getMaterialId() <= 0) {
+                throw new InvalidClassroomMaterialsException("materialId must be positive: " + material.getMaterialId());
+            }
             if (!materialIds.add(material.getMaterialId())) {
                 throw new InvalidClassroomMaterialsException("duplicate materialId: " + material.getMaterialId());
             }
+
+            // Defensive copy keeps aggregate state isolated from caller-owned object mutations.
+            sanitized.add(new MaterialReference(material.getId(), material.getMaterialId(), material.getAssignedToRole()));
         }
 
-        this.materials = new ArrayList<>(newMaterials);
+        return sanitized;
     }
 
     public String getJoinCode() {
@@ -191,7 +206,7 @@ public class Classroom {
         return materials;
     }
     public void setMaterials(List<MaterialReference> materials) {
-        this.materials = materials;
+        this.materials = sanitizeMaterials(materials != null ? materials : List.of());
     }
     public void addMember(Membership membership) {
         members.put(membership.getUserId(), membership);
