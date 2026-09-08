@@ -1,6 +1,7 @@
 package com.timcritt.tfg.infrastructure.kafka;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.timcritt.tfg.infrastructure.service.MaterialDetailsUpdateServiceAdapter;
 import lombok.extern.slf4j.Slf4j;
@@ -29,9 +30,9 @@ public class MaterialDetailsUpsertedEventListener {
     public void onMaterialDetailsUpserted(String payload) {
         log.info("Received material details Kafka message payload={}", payload);
         try {
-            MaterialDetailsUpsertedEvent event = objectMapper.readValue(payload, MaterialDetailsUpsertedEvent.class);
+            MaterialDetailsUpsertedEvent event = parseEvent(payload);
             log.info(
-                    "Parsed material details request materialId={}, version={}, updatedAt={}",
+                    "Parsed material details event materialId={}, version={}, updatedAt={}",
                     event.materialId(),
                     event.version(),
                     event.updatedAt()
@@ -68,8 +69,26 @@ public class MaterialDetailsUpsertedEventListener {
         }
     }
 
+    private MaterialDetailsUpsertedEvent parseEvent(String payload) throws JsonProcessingException {
+        JsonNode root = objectMapper.readTree(payload);
+
+        // Debezium + outbox can wrap the event as {"schema":...,"payload":{"event":{...},...}}
+        JsonNode wrappedEventNode = root.path("payload").path("event");
+        if (wrappedEventNode.isObject()) {
+            return objectMapper.treeToValue(wrappedEventNode, MaterialDetailsUpsertedEvent.class);
+        }
+
+        // Some setups emit {"payload":{...}} without an "event" nesting.
+        JsonNode payloadNode = root.path("payload");
+        if (payloadNode.isObject() && payloadNode.has("materialId")) {
+            return objectMapper.treeToValue(payloadNode, MaterialDetailsUpsertedEvent.class);
+        }
+
+        // Fallback for direct event messages.
+        return objectMapper.treeToValue(root, MaterialDetailsUpsertedEvent.class);
+    }
+
     private static boolean isBlank(String value) {
         return value == null || value.isBlank();
     }
 }
-

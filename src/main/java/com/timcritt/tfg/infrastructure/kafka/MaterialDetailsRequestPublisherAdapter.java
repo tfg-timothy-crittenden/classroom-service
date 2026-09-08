@@ -1,11 +1,11 @@
 package com.timcritt.tfg.infrastructure.kafka;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.timcritt.tfg.application.event.ClassroomIntegrationEventTypes;
+import com.timcritt.tfg.application.port.outbound.IntegrationOutboxMessage;
+import com.timcritt.tfg.application.port.outbound.IntegrationOutboxPort;
 import com.timcritt.tfg.application.port.outbound.MaterialDetailsRequestPublisherPort;
+import com.timcritt.tfg.domain.aggregate.classroom.event.MaterialDetailsRequestedEvent;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -16,18 +16,10 @@ import java.util.UUID;
 @Slf4j
 public class MaterialDetailsRequestPublisherAdapter implements MaterialDetailsRequestPublisherPort {
 
-    private final KafkaTemplate<String, String> kafkaTemplate;
-    private final ObjectMapper objectMapper;
-    private final String materialDetailsRequestedTopic;
+    private final IntegrationOutboxPort integrationOutbox;
 
-    public MaterialDetailsRequestPublisherAdapter(
-            KafkaTemplate<String, String> kafkaTemplate,
-            ObjectMapper objectMapper,
-            @Value("${classroom.kafka.material-details-requested-topic:material.details.requested.v1}") String materialDetailsRequestedTopic
-    ) {
-        this.kafkaTemplate = kafkaTemplate;
-        this.objectMapper = objectMapper;
-        this.materialDetailsRequestedTopic = materialDetailsRequestedTopic;
+    public MaterialDetailsRequestPublisherAdapter(IntegrationOutboxPort integrationOutbox) {
+        this.integrationOutbox = integrationOutbox;
     }
 
     @Override
@@ -36,28 +28,34 @@ public class MaterialDetailsRequestPublisherAdapter implements MaterialDetailsRe
             return;
         }
 
-        MaterialDetailsRequestMessage message = new MaterialDetailsRequestMessage(
+        List<Long> normalizedIds = materialIds.stream()
+                .filter(id -> id != null && id > 0)
+                .distinct()
+                .toList();
+
+        if (normalizedIds.isEmpty()) {
+            return;
+        }
+
+        MaterialDetailsRequestedEvent event = new MaterialDetailsRequestedEvent(
                 UUID.randomUUID().toString(),
-                materialIds,
+                normalizedIds,
                 Instant.now()
         );
 
-        try {
-            String payload = objectMapper.writeValueAsString(message);
-            kafkaTemplate.send(materialDetailsRequestedTopic, payload);
-            log.info(
-                    "Published material details request requestId={}, materialIdsCount={}, materialIds={}, topic={}",
-                    message.requestId(),
-                    message.materialIds().size(),
-                    message.materialIds(),
-                    materialDetailsRequestedTopic
-            );
-        } catch (JsonProcessingException ex) {
-            log.error("Failed to serialize material details request payload for materialIds={}", materialIds, ex);
-        } catch (RuntimeException ex) {
-            // Material assignments are already persisted; keep request publish best-effort.
-            log.error("Failed to publish material details request for materialIds={} to topic={}", materialIds, materialDetailsRequestedTopic, ex);
-        }
+        integrationOutbox.append(new IntegrationOutboxMessage(
+                "classroom",
+                normalizedIds.getFirst(),
+                ClassroomIntegrationEventTypes.MATERIAL_DETAILS_REQUESTED_V1,
+                event.requestId(),
+                event
+        ));
+
+        log.info(
+                "Appended material details request to outbox requestId={}, materialIdsCount={}, materialIds={}",
+                event.requestId(),
+                event.materialIds().size(),
+                event.materialIds()
+        );
     }
 }
-
