@@ -80,10 +80,6 @@ class ClassroomMaterialsReplaceIntegrationTest {
     private static UpdateClassroomMaterialsRequest.MaterialAssignmentDto assignment(Long materialId, ClassroomRole role) {
         UpdateClassroomMaterialsRequest.MaterialAssignmentDto dto = new UpdateClassroomMaterialsRequest.MaterialAssignmentDto();
         dto.setMaterialId(materialId);
-        dto.setName("material-" + materialId);
-        dto.setDescription("desc-" + materialId);
-        dto.setPart1Title("p1");
-        dto.setPart2Title("p2");
         dto.setAssignedToRole(role);
         return dto;
     }

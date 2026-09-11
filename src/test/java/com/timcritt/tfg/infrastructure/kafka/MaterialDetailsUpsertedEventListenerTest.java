@@ -109,6 +109,33 @@ class MaterialDetailsUpsertedEventListenerTest {
         assertEquals(1, adapter.updateCount);
     }
 
+    @Test
+    void delegatesUpdateWhenRootEnvelopeContainsEvent() {
+        CapturingMaterialDetailsUpdateServiceAdapter adapter = new CapturingMaterialDetailsUpdateServiceAdapter();
+        MaterialDetailsUpsertedEventListener listener = new MaterialDetailsUpsertedEventListener(new ObjectMapper().findAndRegisterModules(), adapter);
+
+        listener.onMaterialDetailsUpserted("{" +
+                "\"event\":{" +
+                "\"materialId\":10001," +
+                "\"version\":0," +
+                "\"materialTitle\":\"TOEFL Speaking Test 1\"," +
+                "\"part1Title\":\"Part 1\"," +
+                "\"part2Title\":\"Part 2\"," +
+                "\"description\":\"Seeded\"," +
+                "\"updatedAt\":\"2026-09-04T22:32:02.172647Z\"" +
+                "}," +
+                "\"requestId\":\"ddbe8f09-cc40-456a-9359-48bf64e81639\"" +
+                "}");
+
+        assertEquals(10001L, adapter.materialId);
+        assertEquals(0L, adapter.version);
+        assertEquals("TOEFL Speaking Test 1", adapter.title);
+        assertEquals("Part 1", adapter.part1Title);
+        assertEquals("Part 2", adapter.part2Title);
+        assertEquals("Seeded", adapter.description);
+        assertEquals(1, adapter.updateCount);
+    }
+
     private static final class CapturingMaterialDetailsUpdateServiceAdapter extends MaterialDetailsUpdateServiceAdapter {
         private Long materialId;
         private Long version;

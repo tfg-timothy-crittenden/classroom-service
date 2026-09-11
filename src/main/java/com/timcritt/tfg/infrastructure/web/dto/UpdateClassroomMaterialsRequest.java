@@ -22,14 +22,6 @@ public class UpdateClassroomMaterialsRequest {
     public static class MaterialAssignmentDto {
         @NotNull
         private Long materialId;
-        @NotEmpty
-        private String name;
-        //Optional
-        private String description;
-        @NotEmpty
-        private String part1Title;
-        @NotEmpty
-        private String part2Title;
         @NotNull
         private ClassroomRole assignedToRole;
     }

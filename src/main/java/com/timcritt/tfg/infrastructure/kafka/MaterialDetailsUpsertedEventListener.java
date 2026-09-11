@@ -72,6 +72,12 @@ public class MaterialDetailsUpsertedEventListener {
     private MaterialDetailsUpsertedEvent parseEvent(String payload) throws JsonProcessingException {
         JsonNode root = objectMapper.readTree(payload);
 
+        // Some setups emit an envelope like {"event":{...},"requestId":"..."}.
+        JsonNode rootEventNode = root.path("event");
+        if (rootEventNode.isObject()) {
+            return objectMapper.treeToValue(rootEventNode, MaterialDetailsUpsertedEvent.class);
+        }
+
         // Debezium + outbox can wrap the event as {"schema":...,"payload":{"event":{...},...}}
         JsonNode wrappedEventNode = root.path("payload").path("event");
         if (wrappedEventNode.isObject()) {
