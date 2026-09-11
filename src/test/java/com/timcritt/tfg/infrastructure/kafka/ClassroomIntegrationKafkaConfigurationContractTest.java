@@ -91,7 +91,7 @@ class ClassroomIntegrationKafkaConfigurationContractTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"material.deleted.v1", "material.details.upserted.v1",
-            "material.titles.updated.v1", "user.teacher-role-revoked.v1"})
+            "user.teacher-role-revoked.v1"})
     @SuppressWarnings("unchecked")
     void resolverAndRecovererPublishToOriginalTopicDltAndOriginalPartition(String topic) {
         try (var context = context()) {

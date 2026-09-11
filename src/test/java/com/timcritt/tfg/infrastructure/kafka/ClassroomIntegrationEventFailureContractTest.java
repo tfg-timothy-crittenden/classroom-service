@@ -66,7 +66,7 @@ class ClassroomIntegrationEventFailureContractTest {
                 Arguments.of(listener, "missing required ID", "{\"version\":0,\"materialTitle\":\"Title\"}"),
                 Arguments.of(listener, "null required ID", "{\"" + listener.id + "\":null,\"version\":0,\"materialTitle\":\"Title\"}")
         ));
-        Stream<Arguments> versions = Stream.of(Listener.DETAILS_UPSERTED, Listener.TITLE_UPDATED)
+        Stream<Arguments> versions = Stream.of(Listener.DETAILS_UPSERTED)
                 .flatMap(listener -> Stream.of(
                         Arguments.of(listener, "missing version", "{\"materialId\":26,\"materialTitle\":\"Title\"}"),
                         Arguments.of(listener, "null version", "{\"materialId\":26,\"version\":null,\"materialTitle\":\"Title\"}"),
@@ -86,7 +86,7 @@ class ClassroomIntegrationEventFailureContractTest {
     void serviceFailuresEscapeUnchangedForRetry(Listener listener, RuntimeException failure) {
         switch (listener) {
             case DELETED -> doThrow(failure).when(deletion).handleMaterialDeleted(26L);
-            case DETAILS_UPSERTED, TITLE_UPDATED -> doThrow(failure).when(details)
+            case DETAILS_UPSERTED -> doThrow(failure).when(details)
                     .updateDetails(26L, 0L, "Title", null, null, null);
             case ROLE_REVOKED -> doThrow(failure).when(classrooms).revokeTeacherRoleFromUser(26L);
         }
@@ -112,7 +112,6 @@ class ClassroomIntegrationEventFailureContractTest {
         return switch (listener) {
             case DELETED -> new MaterialDeletedEventListener(mapper, deletion)::onMaterialDeleted;
             case DETAILS_UPSERTED -> new MaterialDetailsUpsertedEventListener(mapper, details)::onMaterialDetailsUpserted;
-            case TITLE_UPDATED -> new MaterialTitleUpdatedEventListener(mapper, details)::onMaterialTitleUpdated;
             case ROLE_REVOKED -> new UserTeacherRoleRevokedEventListener(mapper, classrooms)::onUserTeacherRoleRevoked;
         };
     }
@@ -120,7 +119,6 @@ class ClassroomIntegrationEventFailureContractTest {
     enum Listener {
         DELETED(MaterialDeletedEventListener.class, "onMaterialDeleted", "materialId"),
         DETAILS_UPSERTED(MaterialDetailsUpsertedEventListener.class, "onMaterialDetailsUpserted", "materialId"),
-        TITLE_UPDATED(MaterialTitleUpdatedEventListener.class, "onMaterialTitleUpdated", "materialId"),
         ROLE_REVOKED(UserTeacherRoleRevokedEventListener.class, "onUserTeacherRoleRevoked", "userId");
 
         final Class<?> type;
