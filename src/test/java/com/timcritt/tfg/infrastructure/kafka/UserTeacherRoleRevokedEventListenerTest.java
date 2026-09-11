@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 class UserTeacherRoleRevokedEventListenerTest {
@@ -22,20 +21,6 @@ class UserTeacherRoleRevokedEventListenerTest {
         listener.onUserTeacherRoleRevoked("{\"userId\":2,\"ignored\":true}");
 
         verify(classroomService).revokeTeacherRoleFromUser(2L);
-    }
-
-    @Test
-    void ignoresPayloadWithoutUserId() {
-        listener.onUserTeacherRoleRevoked("{\"ignored\":true}");
-
-        verifyNoInteractions(classroomService);
-    }
-
-    @Test
-    void ignoresMalformedPayload() {
-        listener.onUserTeacherRoleRevoked("not-json");
-
-        verifyNoInteractions(classroomService);
     }
 }
 

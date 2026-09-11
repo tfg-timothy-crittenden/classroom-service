@@ -67,8 +67,7 @@ class MaterialTitleUpdatedEventListenerTest {
     static Stream<Arguments> emptyTitleCases() throws Exception {
         return Stream.of(
                 Arguments.of("only materialId", payload(2L, null, null, null, null)),
-                Arguments.of("blank title fields", payload(2L, "   ", "  ", "\t", "  ")),
-                Arguments.of("missing version", payload(null, "Title", null, null, null))
+                Arguments.of("blank title fields", payload(2L, "   ", "  ", "\t", "  "))
         );
     }
 

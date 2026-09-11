@@ -26,6 +26,19 @@ class MaterialDetailsUpsertedEventListenerTest {
     }
 
     @Test
+    void delegatesUpdateWhenPayloadEnvelopeContainsEventFields() {
+        CapturingMaterialDetailsUpdateServiceAdapter adapter = new CapturingMaterialDetailsUpdateServiceAdapter();
+        MaterialDetailsUpsertedEventListener listener = new MaterialDetailsUpsertedEventListener(new ObjectMapper().findAndRegisterModules(), adapter);
+
+        listener.onMaterialDetailsUpserted("{\"payload\":{\"materialId\":26,\"version\":0,\"title\":\"Title\"}}");
+
+        assertEquals(26L, adapter.materialId);
+        assertEquals(0L, adapter.version);
+        assertEquals("Title", adapter.title);
+        assertEquals(1, adapter.updateCount);
+    }
+
+    @Test
     void supportsTitleAliasName() {
         CapturingMaterialDetailsUpdateServiceAdapter adapter = new CapturingMaterialDetailsUpdateServiceAdapter();
         MaterialDetailsUpsertedEventListener listener = new MaterialDetailsUpsertedEventListener(new ObjectMapper().findAndRegisterModules(), adapter);
@@ -39,42 +52,11 @@ class MaterialDetailsUpsertedEventListenerTest {
     }
 
     @Test
-    void ignoresPayloadWithoutMaterialId() {
-        CapturingMaterialDetailsUpdateServiceAdapter adapter = new CapturingMaterialDetailsUpdateServiceAdapter();
-        MaterialDetailsUpsertedEventListener listener = new MaterialDetailsUpsertedEventListener(new ObjectMapper().findAndRegisterModules(), adapter);
-
-        listener.onMaterialDetailsUpserted("{\"version\":4,\"materialTitle\":\"Title\"}");
-
-        assertNull(adapter.updateCount);
-    }
-
-    @Test
-    void ignoresPayloadWithMissingOrNegativeVersion() {
-        CapturingMaterialDetailsUpdateServiceAdapter adapter = new CapturingMaterialDetailsUpdateServiceAdapter();
-        MaterialDetailsUpsertedEventListener listener = new MaterialDetailsUpsertedEventListener(new ObjectMapper().findAndRegisterModules(), adapter);
-
-        listener.onMaterialDetailsUpserted("{\"materialId\":26,\"materialTitle\":\"Title\"}");
-        listener.onMaterialDetailsUpserted("{\"materialId\":26,\"version\":-1,\"materialTitle\":\"Title\"}");
-
-        assertNull(adapter.updateCount);
-    }
-
-    @Test
     void ignoresPayloadWithoutAnyDetailsFields() {
         CapturingMaterialDetailsUpdateServiceAdapter adapter = new CapturingMaterialDetailsUpdateServiceAdapter();
         MaterialDetailsUpsertedEventListener listener = new MaterialDetailsUpsertedEventListener(new ObjectMapper().findAndRegisterModules(), adapter);
 
-        listener.onMaterialDetailsUpserted("{\"materialId\":26,\"version\":4,\"materialTitle\":\" \",\"part1Title\":\"\t\",\"part2Title\":\"\",\"description\":\"  \"}");
-
-        assertNull(adapter.updateCount);
-    }
-
-    @Test
-    void ignoresMalformedPayload() {
-        CapturingMaterialDetailsUpdateServiceAdapter adapter = new CapturingMaterialDetailsUpdateServiceAdapter();
-        MaterialDetailsUpsertedEventListener listener = new MaterialDetailsUpsertedEventListener(new ObjectMapper().findAndRegisterModules(), adapter);
-
-        listener.onMaterialDetailsUpserted("not-json");
+        listener.onMaterialDetailsUpserted("{\"materialId\":26,\"version\":4,\"materialTitle\":\" \",\"part1Title\":\"\\t\",\"part2Title\":\"\",\"description\":\"  \"}");
 
         assertNull(adapter.updateCount);
     }

@@ -21,18 +21,20 @@ public class MaterialTitleUpdatedEventListener {
 
     @KafkaListener(
             topics = "${classroom.kafka.material-titles-updated-topic:material.titles.updated.v1}",
-            groupId = "${classroom.kafka.material-titles-updated-group-id:classroom-service-material-titles-updated}"
+            groupId = "${classroom.kafka.material-titles-updated-group-id:classroom-service-material-titles-updated}",
+            containerFactory = "classroomIntegrationKafkaListenerContainerFactory"
     )
     public void onMaterialTitleUpdated(String payload) {
+        if (payload == null) {
+            throw new InvalidIntegrationEventException("Material title updated event payload is required");
+        }
         try {
             MaterialTitleUpdatedEvent event = objectMapper.readValue(payload, MaterialTitleUpdatedEvent.class);
-            if (event.materialId() == null) {
-                log.warn("Ignoring material title updated event without materialId: {}", payload);
-                return;
+            if (event == null || event.materialId() == null) {
+                throw new InvalidIntegrationEventException("Material title updated event requires materialId");
             }
             if (event.version() == null || event.version() < 0) {
-                log.warn("Ignoring material title updated event with invalid version for materialId={}: {}", event.materialId(), payload);
-                return;
+                throw new InvalidIntegrationEventException("Material title updated event requires a non-negative version");
             }
             if (isBlank(event.materialTitle()) && isBlank(event.part1Title()) && isBlank(event.part2Title()) && isBlank(event.description())) {
                 log.warn("Ignoring material title updated event without any title fields for materialId={}", event.materialId());
@@ -58,7 +60,7 @@ public class MaterialTitleUpdatedEventListener {
 
             );
         } catch (JsonProcessingException ex) {
-            log.error("Failed to parse material title updated event payload: {}", payload, ex);
+            throw new InvalidIntegrationEventException("Failed to parse material title updated event", ex);
         }
     }
 

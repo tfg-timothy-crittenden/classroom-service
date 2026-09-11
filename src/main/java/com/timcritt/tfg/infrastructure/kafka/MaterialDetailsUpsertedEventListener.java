@@ -25,25 +25,24 @@ public class MaterialDetailsUpsertedEventListener {
 
     @KafkaListener(
             topics = "${classroom.kafka.material-details-upserted-topic:material.details.upserted.v1}",
-            groupId = "${classroom.kafka.material-details-upserted-group-id:classroom-service-material-details-upserted}"
+            groupId = "${classroom.kafka.material-details-upserted-group-id:classroom-service-material-details-upserted}",
+            containerFactory = "classroomIntegrationKafkaListenerContainerFactory"
     )
     public void onMaterialDetailsUpserted(String payload) {
         log.info("Received material details Kafka message payload={}", payload);
         try {
             MaterialDetailsUpsertedEvent event = parseEvent(payload);
+            if (event == null || event.materialId() == null) {
+                throw new InvalidIntegrationEventException("Material details upserted event requires materialId");
+            }
             log.info(
                     "Parsed material details event materialId={}, version={}, updatedAt={}",
                     event.materialId(),
                     event.version(),
                     event.updatedAt()
             );
-            if (event.materialId() == null) {
-                log.warn("Ignoring material details upserted event without materialId: {}", payload);
-                return;
-            }
             if (event.version() == null || event.version() < 0) {
-                log.warn("Ignoring material details upserted event with invalid version for materialId={}: {}", event.materialId(), payload);
-                return;
+                throw new InvalidIntegrationEventException("Material details upserted event requires a non-negative version");
             }
             if (isBlank(event.materialTitle()) && isBlank(event.part1Title()) && isBlank(event.part2Title()) && isBlank(event.description())) {
                 log.warn("Ignoring material details upserted event without any details fields for materialId={}", event.materialId());
@@ -65,12 +64,18 @@ public class MaterialDetailsUpsertedEventListener {
                     event.updatedAt()
             );
         } catch (JsonProcessingException ex) {
-            log.error("Failed to parse material details upserted event payload: {}", payload, ex);
+            throw new InvalidIntegrationEventException("Failed to parse material details upserted event", ex);
         }
     }
 
     private MaterialDetailsUpsertedEvent parseEvent(String payload) throws JsonProcessingException {
+        if (payload == null) {
+            throw new InvalidIntegrationEventException("Material details upserted event payload is required");
+        }
         JsonNode root = objectMapper.readTree(payload);
+        if (root == null || !root.isObject()) {
+            throw new InvalidIntegrationEventException("Material details upserted event must be a JSON object");
+        }
 
         // Some setups emit an envelope like {"event":{...},"requestId":"..."}.
         JsonNode rootEventNode = root.path("event");
