@@ -25,7 +25,7 @@ public class ClassroomJpaEntity {
     private Instant createdAt;
     @Column(nullable = false)
     private Instant updatedAt;
-    @Column(name = "join_code", length = 50)
+    @Column(nullable = false, name = "join_code", length = 50)
     private String joinCode;
 
     @OneToMany(
