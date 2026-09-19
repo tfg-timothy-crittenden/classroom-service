@@ -2,9 +2,11 @@ package com.timcritt.tfg.infrastructure.service;
 
 import com.timcritt.tfg.application.command.UpdateClassroomMaterialsCommand;
 import com.timcritt.tfg.application.port.outbound.MaterialDetailsRequestPublisherPort;
+import com.timcritt.tfg.application.port.outbound.UserProfileDetailsRequestPublisherPort;
 import com.timcritt.tfg.application.port.outbound.repository.ClassroomRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.JoinCodeGenerator;
 import com.timcritt.tfg.application.port.outbound.repository.MaterialDetailsRepositoryPort;
+import com.timcritt.tfg.application.port.outbound.repository.MemberProfileRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.repository.MembershipRepositoryPort;
 import com.timcritt.tfg.application.service.useCase.ClassroomManagementUseCaseImpl;
 import com.timcritt.tfg.domain.aggregate.classroom.Classroom;
@@ -34,19 +36,27 @@ public class ClassroomManagementAdapter  {
     private final MaterialDetailsRepositoryPort materialDetailsRepository;
 
 
-    public ClassroomManagementAdapter(ClassroomRepositoryPort repository,
-                                      MembershipRepositoryPort memberRepository,
-                                      JoinCodeGenerator joinCodeGenerator,
-                                      MemberRoleServiceAdapter memberRoleService,
-                                      MaterialDetailsRepositoryPort materialDetailsRepository,
-                                      MaterialDetailsRequestPublisherPort materialDetailsRequestPublisher) {
+    public ClassroomManagementAdapter(
+            ClassroomRepositoryPort repository,
+            MembershipRepositoryPort memberRepository,
+            JoinCodeGenerator joinCodeGenerator,
+            MemberRoleServiceAdapter memberRoleService,
+            MaterialDetailsRepositoryPort materialDetailsRepository,
+            MaterialDetailsRequestPublisherPort materialDetailsRequestPublisher,
+            MemberProfileRepositoryPort memberProfileRepository,
+            UserProfileDetailsRequestPublisherPort userProfileDetailsRequestPublisher
+    ) {
         this.delegate = new ClassroomManagementUseCaseImpl(
                 repository,
                 memberRepository,
+                memberProfileRepository,
                 joinCodeGenerator,
                 materialDetailsRepository,
-                materialDetailsRequestPublisher
+                materialDetailsRequestPublisher,
+
+                userProfileDetailsRequestPublisher
         );
+
         this.memberRoleService = memberRoleService;
         this.materialDetailsRepository = materialDetailsRepository;
     }

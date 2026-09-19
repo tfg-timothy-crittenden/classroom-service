@@ -3,10 +3,12 @@ package com.timcritt.tfg.application.service.useCase;
 import com.timcritt.tfg.application.command.UpdateClassroomMaterialsCommand;
 import com.timcritt.tfg.application.exception.ClassroomNotFoundException;
 import com.timcritt.tfg.application.port.inbound.ClassroomManagementUseCase;
+import com.timcritt.tfg.application.port.outbound.UserProfileDetailsRequestPublisherPort;
 import com.timcritt.tfg.application.port.outbound.repository.ClassroomRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.JoinCodeGenerator;
 import com.timcritt.tfg.application.port.outbound.MaterialDetailsRequestPublisherPort;
 import com.timcritt.tfg.application.port.outbound.repository.MaterialDetailsRepositoryPort;
+import com.timcritt.tfg.application.port.outbound.repository.MemberProfileRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.repository.MembershipRepositoryPort;
 import com.timcritt.tfg.domain.aggregate.classroom.Classroom;
 import com.timcritt.tfg.domain.aggregate.classroom.MaterialReference;
@@ -20,22 +22,29 @@ public class ClassroomManagementUseCaseImpl implements ClassroomManagementUseCas
 
     private final ClassroomRepositoryPort classroomRepository;
     private final MembershipRepositoryPort memberRepository;
+    private final MemberProfileRepositoryPort memberProfileRepository;
     private final JoinCodeGenerator joinCodeGenerator;
     private final MaterialDetailsRepositoryPort materialDetailsRepository;
     private final MaterialDetailsRequestPublisherPort materialDetailsRequestPublisher;
+    private final UserProfileDetailsRequestPublisherPort userProfileDetailsRequestPublisher;
+
 
     public ClassroomManagementUseCaseImpl(
             ClassroomRepositoryPort repository,
             MembershipRepositoryPort memberRepository,
+            MemberProfileRepositoryPort memberProfileRepository,
             JoinCodeGenerator joinCodeGenerator,
             MaterialDetailsRepositoryPort materialDetailsRepository,
-            MaterialDetailsRequestPublisherPort materialDetailsRequestPublisher
+            MaterialDetailsRequestPublisherPort materialDetailsRequestPublisher,
+            UserProfileDetailsRequestPublisherPort userProfileDetailsRequestPublisher
     ) {
         this.classroomRepository = repository;
         this.memberRepository = memberRepository;
+        this.memberProfileRepository = memberProfileRepository;
         this.joinCodeGenerator = joinCodeGenerator;
         this.materialDetailsRepository = materialDetailsRepository;
         this.materialDetailsRequestPublisher = materialDetailsRequestPublisher;
+        this.userProfileDetailsRequestPublisher = userProfileDetailsRequestPublisher;
     }
 
 
@@ -81,31 +90,78 @@ public class ClassroomManagementUseCaseImpl implements ClassroomManagementUseCas
     @Override
     public Classroom assignTeacherToClassroom(Long classroomId, Long userId) {
         Classroom classroom = classroomRepository.findById(classroomId);
+
         if (classroom == null) {
             throw new ClassroomNotFoundException(classroomId);
         }
+
         classroom.assignTeacher(userId);
-        return classroomRepository.save(classroom);
+
+        Classroom saved = classroomRepository.save(classroom);
+
+        if (memberProfileRepository.findByUserId(userId) == null) {
+            userProfileDetailsRequestPublisher.requestUserProfileDetails(
+                    List.of(userId)
+            );
+        }
+
+        return saved;
     }
 
     @Override
     public Classroom joinClassroom(Long userId, String classCode) {
         Classroom classroom = classroomRepository.findByJoinCode(classCode);
+
         if (classroom == null) {
-            throw new ClassroomNotFoundException("Classroom not found for code: " + classCode);
+            throw new ClassroomNotFoundException(
+                    "Classroom not found for code: " + classCode
+            );
         }
+
         classroom.assignStudent(userId);
-        return classroomRepository.save(classroom);
+
+        Classroom saved = classroomRepository.save(classroom);
+
+        if (memberProfileRepository.findByUserId(userId) == null) {
+            userProfileDetailsRequestPublisher.requestUserProfileDetails(
+                    List.of(userId)
+            );
+        }
+
+        return saved;
     }
 
     @Override
-    public Classroom syncTeachersForClassroom(Long classroomId, List<Membership> teachers) {
+    public Classroom syncTeachersForClassroom(
+            Long classroomId,
+            List<Membership> teachers
+    ) {
         Classroom classroom = classroomRepository.findById(classroomId);
+
         if (classroom == null) {
             throw new ClassroomNotFoundException(classroomId);
         }
+
         classroom.syncTeachers(teachers);
-        return classroomRepository.save(classroom);
+
+        Classroom saved = classroomRepository.save(classroom);
+
+        List<Long> missingProfileUserIds = teachers.stream()
+                .map(Membership::getUserId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .filter(userId ->
+                        memberProfileRepository.findByUserId(userId) == null
+                )
+                .toList();
+
+        if (!missingProfileUserIds.isEmpty()) {
+            userProfileDetailsRequestPublisher.requestUserProfileDetails(
+                    missingProfileUserIds
+            );
+        }
+
+        return saved;
     }
 
     @Override

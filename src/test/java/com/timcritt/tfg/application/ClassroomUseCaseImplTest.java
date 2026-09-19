@@ -1,149 +1,210 @@
 package com.timcritt.tfg.application;
 
+import com.timcritt.tfg.application.command.UpdateClassroomMaterialsCommand;
 import com.timcritt.tfg.application.exception.ClassroomNotFoundException;
-import com.timcritt.tfg.application.port.outbound.*;
+import com.timcritt.tfg.application.port.outbound.JoinCodeGenerator;
+import com.timcritt.tfg.application.port.outbound.MaterialDetailsRequestPublisherPort;
+import com.timcritt.tfg.application.port.outbound.UserProfileDetailsRequestPublisherPort;
 import com.timcritt.tfg.application.port.outbound.repository.ClassroomRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.repository.MaterialDetailsRepositoryPort;
+import com.timcritt.tfg.application.port.outbound.repository.MemberProfileRepositoryPort;
 import com.timcritt.tfg.application.port.outbound.repository.MembershipRepositoryPort;
-import com.timcritt.tfg.domain.exception.MemberAlreadyInClassroomException;
-import com.timcritt.tfg.domain.exception.TeacherAlreadyAssignedException;
 import com.timcritt.tfg.application.service.useCase.ClassroomManagementUseCaseImpl;
 import com.timcritt.tfg.domain.aggregate.classroom.Classroom;
 import com.timcritt.tfg.domain.aggregate.classroom.ClassroomRole;
 import com.timcritt.tfg.domain.aggregate.classroom.Membership;
+import com.timcritt.tfg.domain.exception.MemberAlreadyInClassroomException;
+import com.timcritt.tfg.domain.exception.TeacherAlreadyAssignedException;
 import com.timcritt.tfg.domain.projection.MaterialDetails;
+import com.timcritt.tfg.domain.projection.MemberProfile;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ClassroomUseCaseImplTest {
 
     private final Map<Long, Classroom> classrooms = new ConcurrentHashMap<>();
     private final Map<Long, MaterialDetails> materialDetailsById = new ConcurrentHashMap<>();
-    private final InMemoryMembershipRepository memberRepository = new InMemoryMembershipRepository();
-    private final CapturingMaterialDetailsRequestPublisher materialDetailsRequestPublisher = new CapturingMaterialDetailsRequestPublisher();
 
-    private final ClassroomRepositoryPort repository = new ClassroomRepositoryPort() {
-        @Override
-        public Classroom save(Classroom classroom) {
-            classrooms.put(classroom.getId(), classroom);
-            return classroom;
-        }
+    private final InMemoryMembershipRepository memberRepository =
+            new InMemoryMembershipRepository();
 
-        @Override
-        public Classroom findById(Long id) {
-            return classrooms.get(id);
-        }
+    private final InMemoryMemberProfileRepository memberProfileRepository =
+            new InMemoryMemberProfileRepository();
 
-        @Override
-        public void deleteById(Long id) {
-            classrooms.remove(id);
-        }
+    private final CapturingMaterialDetailsRequestPublisher materialDetailsRequestPublisher =
+            new CapturingMaterialDetailsRequestPublisher();
 
-        @Override
-        public void deleteByIds(List<Long> ids) {
-            ids.forEach(classrooms::remove);
-        }
+    private final CapturingUserProfileDetailsRequestPublisher userProfileDetailsRequestPublisher =
+            new CapturingUserProfileDetailsRequestPublisher();
 
-        @Override
-        public List<Classroom> findByMemberUserId(Long userId) {
-            return classrooms.values().stream()
-                    .filter(classroom -> classroom.getMembers().containsKey(userId))
-                    .toList();
-        }
+    private final ClassroomRepositoryPort repository =
+            new ClassroomRepositoryPort() {
 
-        @Override
-        public List<Classroom> findAll() {
-            return List.copyOf(classrooms.values());
-        }
+                @Override
+                public Classroom save(Classroom classroom) {
+                    classrooms.put(classroom.getId(), classroom);
+                    return classroom;
+                }
 
-        @Override
-        public Classroom findByJoinCode(String joinCode) {
-            return classrooms.values().stream()
-                    .filter(classroom -> joinCode.equals(classroom.getJoinCode()))
-                    .findFirst()
-                    .orElse(null);
-        }
-    };
+                @Override
+                public Classroom findById(Long id) {
+                    return classrooms.get(id);
+                }
 
-    private final MaterialDetailsRepositoryPort materialDetailsRepository = new MaterialDetailsRepositoryPort() {
-        @Override
-        public MaterialDetails findByMaterialId(Long id) {
-            return materialDetailsById.get(id);
-        }
+                @Override
+                public void deleteById(Long id) {
+                    classrooms.remove(id);
+                }
 
-        @Override
-        public void save(MaterialDetails materialDetails) {
-            materialDetailsById.put(materialDetails.getMaterialId(), materialDetails);
-        }
+                @Override
+                public void deleteByIds(List<Long> ids) {
+                    ids.forEach(classrooms::remove);
+                }
 
-        @Override
-        public void deleteByMaterialId(Long materialId) {
-            materialDetailsById.remove(materialId);
-        }
-    };
+                @Override
+                public List<Classroom> findByMemberUserId(Long userId) {
+                    return classrooms.values()
+                            .stream()
+                            .filter(classroom ->
+                                    classroom.getMembers().containsKey(userId))
+                            .toList();
+                }
 
-    private final JoinCodeGenerator joinCodeGenerator = () -> "JOIN-123";
-    private final ClassroomManagementUseCaseImpl useCase = new ClassroomManagementUseCaseImpl(
-            repository,
-            memberRepository,
-            joinCodeGenerator,
-            materialDetailsRepository,
-            materialDetailsRequestPublisher
-    );
+                @Override
+                public List<Classroom> findAll() {
+                    return List.copyOf(classrooms.values());
+                }
+
+                @Override
+                public Classroom findByJoinCode(String joinCode) {
+                    return classrooms.values()
+                            .stream()
+                            .filter(classroom ->
+                                    joinCode.equals(classroom.getJoinCode()))
+                            .findFirst()
+                            .orElse(null);
+                }
+            };
+
+    private final MaterialDetailsRepositoryPort materialDetailsRepository =
+            new MaterialDetailsRepositoryPort() {
+
+                @Override
+                public MaterialDetails findByMaterialId(Long id) {
+                    return materialDetailsById.get(id);
+                }
+
+                @Override
+                public void save(MaterialDetails materialDetails) {
+                    materialDetailsById.put(
+                            materialDetails.getMaterialId(),
+                            materialDetails
+                    );
+                }
+
+                @Override
+                public void deleteByMaterialId(Long materialId) {
+                    materialDetailsById.remove(materialId);
+                }
+            };
+
+    private final JoinCodeGenerator joinCodeGenerator =
+            () -> "JOIN-123";
+
+    private final ClassroomManagementUseCaseImpl useCase =
+            new ClassroomManagementUseCaseImpl(
+                    repository,
+                    memberRepository,
+                    memberProfileRepository,
+                    joinCodeGenerator,
+                    materialDetailsRepository,
+                    materialDetailsRequestPublisher,
+                    userProfileDetailsRequestPublisher
+            );
 
     @Test
     void removesExistingMemberFromClassroom() {
         Classroom classroom = classroomWithMembers();
         classrooms.put(classroom.getId(), classroom);
 
-       useCase.removeMemberFromClassroom(7L, 42L);
-
+        useCase.removeMemberFromClassroom(7L, 42L);
 
         Classroom updated = classrooms.get(7L);
+
         assertNotNull(updated);
         assertFalse(updated.getMembers().containsKey(42L));
     }
 
-
-
     @Test
     void revokesTeacherRoleFromUserAcrossAllClassroomsAndKeepsStudentMemberships() {
-        memberRepository.addMembership(7L, 42L, ClassroomRole.TEACHER);
-        memberRepository.addMembership(8L, 42L, ClassroomRole.STUDENT);
+        memberRepository.addMembership(
+                7L,
+                42L,
+                ClassroomRole.TEACHER
+        );
+
+        memberRepository.addMembership(
+                8L,
+                42L,
+                ClassroomRole.STUDENT
+        );
 
         int updated = useCase.revokeTeacherRoleFromUser(42L);
 
         assertEquals(1, updated);
-        assertFalse(memberRepository.hasMembership(7L, 42L, ClassroomRole.TEACHER));
-        assertTrue(memberRepository.hasMembership(8L, 42L, ClassroomRole.STUDENT));
 
-        assertEquals(0, useCase.revokeTeacherRoleFromUser(42L));
+        assertFalse(
+                memberRepository.hasMembership(
+                        7L,
+                        42L,
+                        ClassroomRole.TEACHER
+                )
+        );
+
+        assertTrue(
+                memberRepository.hasMembership(
+                        8L,
+                        42L,
+                        ClassroomRole.STUDENT
+                )
+        );
+
+        assertEquals(
+                0,
+                useCase.revokeTeacherRoleFromUser(42L)
+        );
     }
-
 
     @Test
     void throwsStudentSpecificConflictWhenJoiningAlreadyJoinedClassroom() {
         Classroom classroom = classroomWithMembers();
         classrooms.put(classroom.getId(), classroom);
 
-        MemberAlreadyInClassroomException exception = assertThrows(
-                MemberAlreadyInClassroomException.class,
-                () -> useCase.joinClassroom(42L, "JOIN-123")
-        );
+        MemberAlreadyInClassroomException exception =
+                assertThrows(
+                        MemberAlreadyInClassroomException.class,
+                        () -> useCase.joinClassroom(
+                                42L,
+                                "JOIN-123"
+                        )
+                );
 
-        assertEquals("User is already a student in Math", exception.getMessage());
+        assertEquals(
+                "User is already a student in Math",
+                exception.getMessage()
+        );
     }
 
     @Test
@@ -151,45 +212,145 @@ class ClassroomUseCaseImplTest {
         Classroom classroom = classroomWithMembers();
         classrooms.put(classroom.getId(), classroom);
 
-        MemberAlreadyInClassroomException exception = assertThrows(
-                MemberAlreadyInClassroomException.class,
-                () -> useCase.syncTeachersForClassroom(
-                        7L,
-                        List.of(new Membership(null, 42L, ClassroomRole.TEACHER, Instant.now(), Instant.now()))
-                )
-        );
+        MemberAlreadyInClassroomException exception =
+                assertThrows(
+                        MemberAlreadyInClassroomException.class,
+                        () -> useCase.syncTeachersForClassroom(
+                                7L,
+                                List.of(
+                                        new Membership(
+                                                null,
+                                                42L,
+                                                ClassroomRole.TEACHER,
+                                                Instant.now(),
+                                                Instant.now()
+                                        )
+                                )
+                        )
+                );
 
-        assertEquals("User is already a student in Math", exception.getMessage());
+        assertEquals(
+                "User is already a student in Math",
+                exception.getMessage()
+        );
     }
 
     // ── assignTeacherToClassroom ──────────────────────────────────────────────
 
     @Test
     void assignTeacher_successfullyAddsTeacherToClassroom() {
-        Classroom classroom = new Classroom(7L, "Math", "Math class");
-        classrooms.put(classroom.getId(), classroom);
+        Classroom classroom =
+                new Classroom(
+                        7L,
+                        "Math",
+                        "Math class"
+                );
 
-        Classroom updated = useCase.assignTeacherToClassroom(7L, 99L);
+        classrooms.put(
+                classroom.getId(),
+                classroom
+        );
 
-        assertTrue(updated.getMembers().containsKey(99L));
+        Classroom updated =
+                useCase.assignTeacherToClassroom(
+                        7L,
+                        99L
+                );
+
+        assertTrue(
+                updated.getMembers()
+                        .containsKey(99L)
+        );
+    }
+
+    @Test
+    void assignTeacher_requestsProfileWhenMemberProfileIsMissing() {
+        Classroom classroom =
+                new Classroom(
+                        7L,
+                        "Math",
+                        "Math class"
+                );
+
+        classrooms.put(
+                classroom.getId(),
+                classroom
+        );
+
+        useCase.assignTeacherToClassroom(
+                7L,
+                99L
+        );
+
+        assertEquals(
+                List.of(99L),
+                userProfileDetailsRequestPublisher
+                        .lastRequestedUserIds
+        );
+    }
+
+    @Test
+    void assignTeacher_doesNotRequestProfileWhenMemberProfileExists() {
+        Classroom classroom =
+                new Classroom(
+                        7L,
+                        "Math",
+                        "Math class"
+                );
+
+        classrooms.put(
+                classroom.getId(),
+                classroom
+        );
+
+        memberProfileRepository.save(
+                MemberProfile.builder()
+                        .userId(99L)
+                        .version(1L)
+                        .firstName("Test")
+                        .lastName("Teacher")
+                        .build()
+        );
+
+        useCase.assignTeacherToClassroom(
+                7L,
+                99L
+        );
+
+        assertTrue(
+                userProfileDetailsRequestPublisher
+                        .lastRequestedUserIds
+                        .isEmpty()
+        );
     }
 
     @Test
     void assignTeacher_throwsClassroomNotFoundWhenClassroomMissing() {
         assertThrows(
                 ClassroomNotFoundException.class,
-                () -> useCase.assignTeacherToClassroom(999L, 1L)
+                () -> useCase.assignTeacherToClassroom(
+                        999L,
+                        1L
+                )
         );
     }
 
     @Test
     void assignTeacher_throwsTeacherAlreadyAssignedWhenTeacherAlreadyInClassroom() {
-        Classroom classroom = classroomWithTeacher(); // has teacher userId=42
-        classrooms.put(classroom.getId(), classroom);
+        Classroom classroom =
+                classroomWithTeacher();
+
+        classrooms.put(
+                classroom.getId(),
+                classroom
+        );
 
         assertThrows(
                 TeacherAlreadyAssignedException.class,
-                () -> useCase.assignTeacherToClassroom(7L, 42L)
+                () -> useCase.assignTeacherToClassroom(
+                        7L,
+                        42L
+                )
         );
     }
 
@@ -197,22 +358,114 @@ class ClassroomUseCaseImplTest {
 
     @Test
     void joinClassroom_successfullyAddsStudentMembership() {
-        Classroom classroom = new Classroom(7L, "Math", "Math class");
+        Classroom classroom =
+                new Classroom(
+                        7L,
+                        "Math",
+                        "Math class"
+                );
+
         classroom.setJoinCode("JOIN-123");
-        classrooms.put(classroom.getId(), classroom);
 
-        useCase.joinClassroom(55L, "JOIN-123");
+        classrooms.put(
+                classroom.getId(),
+                classroom
+        );
 
-        Classroom updated = classrooms.get(7L);
-        assertTrue(updated.getMembers().containsKey(55L));
-        assertEquals(ClassroomRole.STUDENT, updated.getMembers().get(55L).getRole());
+        useCase.joinClassroom(
+                55L,
+                "JOIN-123"
+        );
+
+        Classroom updated =
+                classrooms.get(7L);
+
+        assertTrue(
+                updated.getMembers()
+                        .containsKey(55L)
+        );
+
+        assertEquals(
+                ClassroomRole.STUDENT,
+                updated.getMembers()
+                        .get(55L)
+                        .getRole()
+        );
+    }
+
+    @Test
+    void joinClassroom_requestsProfileWhenMemberProfileIsMissing() {
+        Classroom classroom =
+                new Classroom(
+                        7L,
+                        "Math",
+                        "Math class"
+                );
+
+        classroom.setJoinCode("JOIN-123");
+
+        classrooms.put(
+                classroom.getId(),
+                classroom
+        );
+
+        useCase.joinClassroom(
+                55L,
+                "JOIN-123"
+        );
+
+        assertEquals(
+                List.of(55L),
+                userProfileDetailsRequestPublisher
+                        .lastRequestedUserIds
+        );
+    }
+
+    @Test
+    void joinClassroom_doesNotRequestProfileWhenMemberProfileExists() {
+        Classroom classroom =
+                new Classroom(
+                        7L,
+                        "Math",
+                        "Math class"
+                );
+
+        classroom.setJoinCode("JOIN-123");
+
+        classrooms.put(
+                classroom.getId(),
+                classroom
+        );
+
+        memberProfileRepository.save(
+                MemberProfile.builder()
+                        .userId(55L)
+                        .version(1L)
+                        .firstName("Test")
+                        .lastName("Student")
+                        .build()
+        );
+
+        useCase.joinClassroom(
+                55L,
+                "JOIN-123"
+        );
+
+        assertTrue(
+                userProfileDetailsRequestPublisher
+                        .lastRequestedUserIds
+                        .isEmpty()
+        );
     }
 
     @Test
     void joinClassroom_throwsClassroomNotFoundWhenJoinCodeInvalid() {
         assertThrows(
                 ClassroomNotFoundException.class,
-                () -> useCase.joinClassroom(1L, "BAD-CODE")
+                () -> useCase.joinClassroom(
+                        1L,
+                        "BAD-CODE"
+                )
         );
     }
 
@@ -222,191 +475,512 @@ class ClassroomUseCaseImplTest {
     void syncTeachers_throwsClassroomNotFoundWhenClassroomMissing() {
         assertThrows(
                 ClassroomNotFoundException.class,
-                () -> useCase.syncTeachersForClassroom(999L, List.of())
+                () -> useCase.syncTeachersForClassroom(
+                        999L,
+                        List.of()
+                )
         );
     }
 
     @Test
     void syncTeachers_removesTeachersNotInNewList() {
-        Classroom classroom = classroomWithTeacher(); // teacher userId=42
-        classrooms.put(classroom.getId(), classroom);
+        Classroom classroom =
+                classroomWithTeacher();
 
-        useCase.syncTeachersForClassroom(7L, List.of()); // empty list → remove all teachers
+        classrooms.put(
+                classroom.getId(),
+                classroom
+        );
 
-        Classroom updated = classrooms.get(7L);
-        assertTrue(updated.getMembers().values().stream().noneMatch(m -> m.getRole() == ClassroomRole.TEACHER));
+        useCase.syncTeachersForClassroom(
+                7L,
+                List.of()
+        );
+
+        Classroom updated =
+                classrooms.get(7L);
+
+        assertTrue(
+                updated.getMembers()
+                        .values()
+                        .stream()
+                        .noneMatch(
+                                membership ->
+                                        membership.getRole()
+                                                == ClassroomRole.TEACHER
+                        )
+        );
     }
 
     @Test
     void syncTeachers_addsNewTeachersNotCurrentlyInClassroom() {
-        Classroom classroom = new Classroom(7L, "Math", "Math class");
-        classrooms.put(classroom.getId(), classroom);
+        Classroom classroom =
+                new Classroom(
+                        7L,
+                        "Math",
+                        "Math class"
+                );
 
-        Membership newTeacher = new Membership(null, 77L, ClassroomRole.TEACHER, Instant.now(), Instant.now());
-        useCase.syncTeachersForClassroom(7L, List.of(newTeacher));
+        classrooms.put(
+                classroom.getId(),
+                classroom
+        );
 
-        Classroom updated = classrooms.get(7L);
-        assertTrue(updated.getMembers().containsKey(77L));
+        Membership newTeacher =
+                new Membership(
+                        null,
+                        77L,
+                        ClassroomRole.TEACHER,
+                        Instant.now(),
+                        Instant.now()
+                );
+
+        useCase.syncTeachersForClassroom(
+                7L,
+                List.of(newTeacher)
+        );
+
+        Classroom updated =
+                classrooms.get(7L);
+
+        assertTrue(
+                updated.getMembers()
+                        .containsKey(77L)
+        );
     }
-
-
 
     // ── save ──────────────────────────────────────────────────────────────────
 
     @Test
     void save_generatesJoinCodeWhenAbsent() {
-        Classroom classroom = new Classroom(10L, "No Code", "desc");
-        classrooms.put(classroom.getId(), classroom);
+        Classroom classroom =
+                new Classroom(
+                        10L,
+                        "No Code",
+                        "desc"
+                );
 
-        Classroom saved = useCase.save(classroom);
+        classrooms.put(
+                classroom.getId(),
+                classroom
+        );
 
-        assertEquals("JOIN-123", saved.getJoinCode());
+        Classroom saved =
+                useCase.save(classroom);
+
+        assertEquals(
+                "JOIN-123",
+                saved.getJoinCode()
+        );
     }
 
     @Test
     void save_keepsExistingJoinCodeWhenPresent() {
-        Classroom classroom = new Classroom(10L, "Has Code", "desc");
-        classroom.setJoinCode("EXISTING-CODE");
-        classrooms.put(classroom.getId(), classroom);
+        Classroom classroom =
+                new Classroom(
+                        10L,
+                        "Has Code",
+                        "desc"
+                );
 
-        Classroom saved = useCase.save(classroom);
+        classroom.setJoinCode(
+                "EXISTING-CODE"
+        );
 
-        assertEquals("EXISTING-CODE", saved.getJoinCode());
+        classrooms.put(
+                classroom.getId(),
+                classroom
+        );
+
+        Classroom saved =
+                useCase.save(classroom);
+
+        assertEquals(
+                "EXISTING-CODE",
+                saved.getJoinCode()
+        );
     }
 
     // ── getMembersByRole ──────────────────────────────────────────────────────
 
     @Test
     void getMembersByRole_returnsOnlyMembersWithMatchingRole() {
-        Classroom classroom = classroomWithMembers(); // 1 teacher (43), 1 student (42)
-        classrooms.put(classroom.getId(), classroom);
+        Classroom classroom =
+                classroomWithMembers();
 
-        List<Membership> students = useCase.getMembersByRole(7L, ClassroomRole.STUDENT);
-        List<Membership> teachers = useCase.getMembersByRole(7L, ClassroomRole.TEACHER);
+        classrooms.put(
+                classroom.getId(),
+                classroom
+        );
 
-        assertEquals(1, students.size());
-        assertEquals(42L, students.getFirst().getUserId());
-        assertEquals(1, teachers.size());
-        assertEquals(43L, teachers.getFirst().getUserId());
+        List<Membership> students =
+                useCase.getMembersByRole(
+                        7L,
+                        ClassroomRole.STUDENT
+                );
+
+        List<Membership> teachers =
+                useCase.getMembersByRole(
+                        7L,
+                        ClassroomRole.TEACHER
+                );
+
+        assertEquals(
+                1,
+                students.size()
+        );
+
+        assertEquals(
+                42L,
+                students.getFirst()
+                        .getUserId()
+        );
+
+        assertEquals(
+                1,
+                teachers.size()
+        );
+
+        assertEquals(
+                43L,
+                teachers.getFirst()
+                        .getUserId()
+        );
     }
 
     @Test
     void getMembersByRole_throwsWhenClassroomNotFound() {
-        assertThrows(ClassroomNotFoundException.class, () -> useCase.getMembersByRole(999L, ClassroomRole.STUDENT));
+        assertThrows(
+                ClassroomNotFoundException.class,
+                () -> useCase.getMembersByRole(
+                        999L,
+                        ClassroomRole.STUDENT
+                )
+        );
     }
 
     // ── revokeTeacherRoleFromUser ─────────────────────────────────────────────
 
     @Test
     void revokeTeacherRole_throwsWhenUserIdIsNull() {
-        assertThrows(IllegalArgumentException.class, () -> useCase.revokeTeacherRoleFromUser(null));
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> useCase.revokeTeacherRoleFromUser(null)
+        );
     }
+
+    // ── replaceMaterials ──────────────────────────────────────────────────────
 
     @Test
     void replaceMaterials_requestsMissingMaterialDetails() {
-        Classroom classroom = new Classroom(7L, "Math", "Math class");
-        classrooms.put(classroom.getId(), classroom);
-        materialDetailsById.put(10001L, MaterialDetails.builder().materialId(10001L).version(1L).name("Has details").build());
+        Classroom classroom =
+                new Classroom(
+                        7L,
+                        "Math",
+                        "Math class"
+                );
 
-        useCase.replaceMaterials(new com.timcritt.tfg.application.command.UpdateClassroomMaterialsCommand(
-                7L,
-                List.of(
-                        new com.timcritt.tfg.application.command.UpdateClassroomMaterialsCommand.MaterialAssignment(10001L, ClassroomRole.STUDENT),
-                        new com.timcritt.tfg.application.command.UpdateClassroomMaterialsCommand.MaterialAssignment(10002L, ClassroomRole.TEACHER)
+        classrooms.put(
+                classroom.getId(),
+                classroom
+        );
+
+        materialDetailsById.put(
+                10001L,
+                MaterialDetails.builder()
+                        .materialId(10001L)
+                        .version(1L)
+                        .name("Has details")
+                        .build()
+        );
+
+        useCase.replaceMaterials(
+                new UpdateClassroomMaterialsCommand(
+                        7L,
+                        List.of(
+                                new UpdateClassroomMaterialsCommand.MaterialAssignment(
+                                        10001L,
+                                        ClassroomRole.STUDENT
+                                ),
+                                new UpdateClassroomMaterialsCommand.MaterialAssignment(
+                                        10002L,
+                                        ClassroomRole.TEACHER
+                                )
+                        )
                 )
-        ));
+        );
 
-        assertEquals(List.of(10002L), materialDetailsRequestPublisher.lastRequestedMaterialIds);
+        assertEquals(
+                List.of(10002L),
+                materialDetailsRequestPublisher
+                        .lastRequestedMaterialIds
+        );
     }
 
     @Test
     void replaceMaterials_doesNotRequestWhenAllMaterialDetailsExist() {
-        Classroom classroom = new Classroom(8L, "Science", "Science class");
-        classrooms.put(classroom.getId(), classroom);
-        materialDetailsById.put(20001L, MaterialDetails.builder().materialId(20001L).version(2L).name("One").build());
-        materialDetailsById.put(20002L, MaterialDetails.builder().materialId(20002L).version(2L).name("Two").build());
+        Classroom classroom =
+                new Classroom(
+                        8L,
+                        "Science",
+                        "Science class"
+                );
 
-        useCase.replaceMaterials(new com.timcritt.tfg.application.command.UpdateClassroomMaterialsCommand(
-                8L,
-                List.of(
-                        new com.timcritt.tfg.application.command.UpdateClassroomMaterialsCommand.MaterialAssignment(20001L, ClassroomRole.STUDENT),
-                        new com.timcritt.tfg.application.command.UpdateClassroomMaterialsCommand.MaterialAssignment(20002L, ClassroomRole.TEACHER)
+        classrooms.put(
+                classroom.getId(),
+                classroom
+        );
+
+        materialDetailsById.put(
+                20001L,
+                MaterialDetails.builder()
+                        .materialId(20001L)
+                        .version(2L)
+                        .name("One")
+                        .build()
+        );
+
+        materialDetailsById.put(
+                20002L,
+                MaterialDetails.builder()
+                        .materialId(20002L)
+                        .version(2L)
+                        .name("Two")
+                        .build()
+        );
+
+        useCase.replaceMaterials(
+                new UpdateClassroomMaterialsCommand(
+                        8L,
+                        List.of(
+                                new UpdateClassroomMaterialsCommand.MaterialAssignment(
+                                        20001L,
+                                        ClassroomRole.STUDENT
+                                ),
+                                new UpdateClassroomMaterialsCommand.MaterialAssignment(
+                                        20002L,
+                                        ClassroomRole.TEACHER
+                                )
+                        )
                 )
-        ));
+        );
 
-        assertTrue(materialDetailsRequestPublisher.lastRequestedMaterialIds.isEmpty());
+        assertTrue(
+                materialDetailsRequestPublisher
+                        .lastRequestedMaterialIds
+                        .isEmpty()
+        );
     }
 
     private Classroom classroomWithMembers() {
-        Classroom classroom = new Classroom(7L, "Math", "Math class");
+        Classroom classroom =
+                new Classroom(
+                        7L,
+                        "Math",
+                        "Math class"
+                );
+
         classroom.setJoinCode("JOIN-123");
         classroom.setCreatedAt(Instant.now());
         classroom.setUpdatedAt(Instant.now());
 
-        Membership teacher = new Membership(null, 43L,  ClassroomRole.TEACHER, Instant.now(), Instant.now());
-        Membership student = new Membership(null, 42L, ClassroomRole.STUDENT, Instant.now(), Instant.now());
+        Membership teacher =
+                new Membership(
+                        null,
+                        43L,
+                        ClassroomRole.TEACHER,
+                        Instant.now(),
+                        Instant.now()
+                );
+
+        Membership student =
+                new Membership(
+                        null,
+                        42L,
+                        ClassroomRole.STUDENT,
+                        Instant.now(),
+                        Instant.now()
+                );
+
         classroom.addMember(teacher);
         classroom.addMember(student);
+
         return classroom;
     }
 
     private Classroom classroomWithTeacher() {
-        Classroom classroom = new Classroom(7L, "Teacher class 7", "Teacher class");
+        Classroom classroom =
+                new Classroom(
+                        7L,
+                        "Teacher class 7",
+                        "Teacher class"
+                );
+
         classroom.setJoinCode("JOIN-7");
         classroom.setCreatedAt(Instant.now());
         classroom.setUpdatedAt(Instant.now());
 
-        Membership teacher = new Membership(null, 42L, ClassroomRole.TEACHER, Instant.now(), Instant.now());
+        Membership teacher =
+                new Membership(
+                        null,
+                        42L,
+                        ClassroomRole.TEACHER,
+                        Instant.now(),
+                        Instant.now()
+                );
+
         classroom.addMember(teacher);
+
         return classroom;
     }
 
-    private static class InMemoryMembershipRepository implements MembershipRepositoryPort {
-        private final Map<Key, ClassroomRole> memberships = new HashMap<>();
+    private static class InMemoryMembershipRepository
+            implements MembershipRepositoryPort {
 
-        void addMembership(Long classroomId, Long userId, ClassroomRole role) {
-            memberships.put(new Key(classroomId, userId), role);
+        private final Map<Key, ClassroomRole> memberships =
+                new HashMap<>();
+
+        void addMembership(
+                Long classroomId,
+                Long userId,
+                ClassroomRole role
+        ) {
+            memberships.put(
+                    new Key(classroomId, userId),
+                    role
+            );
         }
 
-        boolean hasMembership(Long classroomId, Long userId, ClassroomRole role) {
-            return role == memberships.get(new Key(classroomId, userId));
+        boolean hasMembership(
+                Long classroomId,
+                Long userId,
+                ClassroomRole role
+        ) {
+            return role ==
+                    memberships.get(
+                            new Key(classroomId, userId)
+                    );
         }
 
         @Override
-        public Optional<ClassroomRole> findRoleByClassroomIdAndUserId(Long classroomId, Long userId) {
-            return Optional.ofNullable(memberships.get(new Key(classroomId, userId)));
+        public Optional<ClassroomRole> findRoleByClassroomIdAndUserId(
+                Long classroomId,
+                Long userId
+        ) {
+            return Optional.ofNullable(
+                    memberships.get(
+                            new Key(classroomId, userId)
+                    )
+            );
         }
 
         @Override
-        public int deleteTeacherMembershipsByUserId(Long userId) {
+        public int deleteTeacherMembershipsByUserId(
+                Long userId
+        ) {
             int removed = 0;
-            var iterator = memberships.entrySet().iterator();
+
+            var iterator =
+                    memberships.entrySet()
+                            .iterator();
+
             while (iterator.hasNext()) {
-                Map.Entry<Key, ClassroomRole> entry = iterator.next();
-                if (entry.getKey().userId.equals(userId) && entry.getValue() == ClassroomRole.TEACHER) {
+                Map.Entry<Key, ClassroomRole> entry =
+                        iterator.next();
+
+                if (entry.getKey()
+                        .userId
+                        .equals(userId)
+                        && entry.getValue()
+                        == ClassroomRole.TEACHER) {
+
                     iterator.remove();
                     removed++;
                 }
             }
+
             return removed;
         }
 
         @Override
-        public void saveMember(Long classroomId, Membership membership) {
-            memberships.put(new Key(classroomId, membership.getUserId()), membership.getRole());
+        public void saveMember(
+                Long classroomId,
+                Membership membership
+        ) {
+            memberships.put(
+                    new Key(
+                            classroomId,
+                            membership.getUserId()
+                    ),
+                    membership.getRole()
+            );
         }
 
-        private record Key(Long classroomId, Long userId) { }
+        private record Key(
+                Long classroomId,
+                Long userId
+        ) {
+        }
     }
 
-    private static class CapturingMaterialDetailsRequestPublisher implements MaterialDetailsRequestPublisherPort {
-        private List<Long> lastRequestedMaterialIds = List.of();
+    private static class InMemoryMemberProfileRepository
+            implements MemberProfileRepositoryPort {
+
+        private final Map<Long, MemberProfile> profiles =
+                new HashMap<>();
 
         @Override
-        public void requestMaterialDetails(List<Long> materialIds) {
-            this.lastRequestedMaterialIds = List.copyOf(materialIds);
+        public MemberProfile findByUserId(
+                Long userId
+        ) {
+            return profiles.get(userId);
+        }
+
+        @Override
+        public void save(
+                MemberProfile memberProfile
+        ) {
+            profiles.put(
+                    memberProfile.getUserId(),
+                    memberProfile
+            );
+        }
+
+        @Override
+        public void deleteByUserId(
+                Long userId
+        ) {
+            profiles.remove(userId);
         }
     }
 
-}
+    private static class CapturingMaterialDetailsRequestPublisher
+            implements MaterialDetailsRequestPublisherPort {
 
+        private List<Long> lastRequestedMaterialIds =
+                List.of();
+
+        @Override
+        public void requestMaterialDetails(
+                List<Long> materialIds
+        ) {
+            this.lastRequestedMaterialIds =
+                    List.copyOf(materialIds);
+        }
+    }
+
+    private static class CapturingUserProfileDetailsRequestPublisher
+            implements UserProfileDetailsRequestPublisherPort {
+
+        private List<Long> lastRequestedUserIds =
+                List.of();
+
+        @Override
+        public void requestUserProfileDetails(
+                List<Long> userIds
+        ) {
+            this.lastRequestedUserIds =
+                    List.copyOf(userIds);
+        }
+    }
+}
